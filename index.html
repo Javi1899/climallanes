@@ -537,40 +537,91 @@ async function renderWithAEMET(aeData, marineData) {
   const hoy = pred[0];
   const hora = now.getHours();
 
-  // Temperatura actual: buscar el periodo más próximo
-  let tempActual = 15, condActual = '13', humActual = 70, vientoActual = 20, dirActual = 0, lluviaHoy = 0;
-  try {
-    // Temperatura por horas
-    const tHora = hoy.temperatura?.dato || hoy.temperatura?.datoHora;
-    if (tHora) {
-      const closest = tHora.reduce((a,b) => Math.abs(parseInt(b.hora||b.periodo)-hora) < Math.abs(parseInt(a.hora||a.periodo)-hora) ? b : a);
-      tempActual = parseFloat(closest.value);
+  // ── Helpers de parseo AEMET ──────────────────────────────
+  // La API diaria devuelve periodos como "00-06","06-12","12-24","00-24"
+  // o periodos horarios "0","1"..."23". Elegimos el que mejor cubre la hora actual.
+  function bestPeriodo(arr, horaActual) {
+    if (!Array.isArray(arr) || arr.length === 0) return null;
+    // Filtrar entradas con value no vacío
+    const validos = arr.filter(x => x.value !== '' && x.value !== null && x.value !== undefined);
+    if (validos.length === 0) return arr[0];
+    // Si los periodos son rangos tipo "00-06"
+    if (validos[0].periodo && validos[0].periodo.includes('-')) {
+      const dentro = validos.filter(x => {
+        const [ini, fin] = x.periodo.split('-').map(Number);
+        return horaActual >= ini && horaActual < (fin === 0 ? 24 : fin);
+      });
+      if (dentro.length > 0) return dentro[dentro.length - 1];
+      return validos[validos.length - 1];
     }
-    // Estado del cielo
-    const cieloArr = hoy.estadoCielo?.dato || hoy.estadoCielo;
-    if (Array.isArray(cieloArr)) {
-      const cHora = cieloArr.reduce((a,b) => Math.abs(parseInt(b.periodo||0)-hora) < Math.abs(parseInt(a.periodo||0)-hora) ? b : a);
-      condActual = cHora.value || '13';
-    }
-    // Viento
-    const vArr = hoy.viento?.dato || hoy.viento;
-    if (Array.isArray(vArr)) {
-      const vHora = vArr.reduce((a,b) => Math.abs(parseInt(b.periodo||0)-hora) < Math.abs(parseInt(a.periodo||0)-hora) ? b : a);
-      vientoActual = parseFloat(vHora.velocidad || 0);
-      dirActual = vHora.direccion || 'N';
-    }
-    // Lluvia
-    const pArr = hoy.probPrecipitacion?.dato || [];
-    lluviaHoy = parseFloat(hoy.precipitacion?.value || 0);
-    // Humedad
-    const huArr = hoy.humedadRelativa?.dato || hoy.humedadRelativa;
-    if (Array.isArray(huArr)) {
-      const hHora = huArr.reduce((a,b) => Math.abs(parseInt(b.periodo||0)-hora) < Math.abs(parseInt(a.periodo||0)-hora) ? b : a);
-      humActual = parseInt(hHora.value || 70);
-    }
-  } catch(e) { console.warn('Parse AEMET parcial:', e); }
+    // Si los periodos son horas numéricas "0","1",..."23"
+    return validos.reduce((a, b) => {
+      const da = Math.abs(parseInt(a.periodo || a.hora || 0) - horaActual);
+      const db = Math.abs(parseInt(b.periodo || b.hora || 0) - horaActual);
+      return db < da ? b : a;
+    });
+  }
 
-  const snowLvl = snowLevel(tempActual);
+  let tempActual = null, condActual = '13', humActual = 70, vientoActual = 20, dirActual = 'N', lluviaHoy = 0;
+  let tMaxHoy = null, tMinHoy = null;
+
+  try {
+    // Temperatura máxima y mínima del día (siempre disponibles en diaria)
+    tMaxHoy = parseFloat(hoy.temperatura?.maxima);
+    tMinHoy = parseFloat(hoy.temperatura?.minima);
+
+    // Temperatura actual: interpolación lineal entre min y max según la hora
+    // Mínimo ~6h, máximo ~14h → curva senoidal simple
+    if (!isNaN(tMaxHoy) && !isNaN(tMinHoy)) {
+      const h = hora;
+      // Factor 0→1 según hora del día (mínimo a las 6h, máximo a las 14h)
+      const factor = Math.max(0, Math.sin(((h - 6) / 16) * Math.PI));
+      tempActual = tMinHoy + (tMaxHoy - tMinHoy) * factor;
+    }
+
+    // Estado del cielo — periodos tipo "00-06","06-12","12-24"
+    const cieloArr = hoy.estadoCielo;
+    if (Array.isArray(cieloArr)) {
+      const best = bestPeriodo(cieloArr, hora);
+      if (best && best.value && best.value !== '') condActual = best.value;
+    }
+
+    // Viento — misma estructura de periodos
+    const vArr = hoy.viento;
+    if (Array.isArray(vArr)) {
+      const best = bestPeriodo(vArr, hora);
+      if (best) {
+        const vel = parseFloat(best.velocidad);
+        if (!isNaN(vel) && vel > 0) vientoActual = vel;
+        if (best.direccion && best.direccion !== '') dirActual = best.direccion;
+      }
+    }
+
+    // Probabilidad de precipitación (usamos como indicador de lluvia)
+    const probArr = hoy.probPrecipitacion;
+    if (Array.isArray(probArr)) {
+      const best = bestPeriodo(probArr, hora);
+      if (best) lluviaHoy = parseFloat(best.value) || 0;
+    }
+
+    // Humedad relativa
+    const humArr = hoy.humedadRelativa;
+    if (Array.isArray(humArr)) {
+      const best = bestPeriodo(humArr, hora);
+      if (best && best.value !== '') humActual = parseInt(best.value) || 70;
+    }
+  } catch(e) { console.warn('Parse AEMET:', e); }
+
+  // Si la temperatura actual aún no es válida, usar la media de máx/mín
+  if (tempActual === null || isNaN(tempActual)) {
+    tempActual = (!isNaN(tMaxHoy) && !isNaN(tMinHoy))
+      ? (tMaxHoy + tMinHoy) / 2
+      : (!isNaN(tMaxHoy) ? tMaxHoy : 15);
+  }
+
+  // Cota de nieve: se calcula con la temperatura MÁXIMA del día (referencia correcta)
+  const tempParaNieve = (!isNaN(tMaxHoy) && tMaxHoy !== null) ? tMaxHoy : tempActual;
+  const snowLvl = snowLevel(tempParaNieve);
   const snowPct = Math.min(100, Math.max(1, (snowLvl/2600)*100));
 
   // Marea hoy
@@ -602,7 +653,9 @@ async function renderWithAEMET(aeData, marineData) {
           <div class="stat-item"><span class="stat-label">💨 Viento</span><span class="stat-val">${Math.round(vientoActual)}<span class="stat-unit">km/h</span></span></div>
           <div class="stat-item"><span class="stat-label">🧭 Dirección</span><span class="stat-val">${typeof dirActual==='string'?dirActual:windDir(dirActual)}</span></div>
           <div class="stat-item"><span class="stat-label">💧 Humedad</span><span class="stat-val">${humActual}<span class="stat-unit">%</span></span></div>
-          <div class="stat-item"><span class="stat-label">🌧️ Lluvia hoy</span><span class="stat-val">${lluviaHoy.toFixed(1)}<span class="stat-unit">mm</span></span></div>
+          <div class="stat-item"><span class="stat-label">🌧️ Prob. lluvia</span><span class="stat-val">${Math.round(lluviaHoy)}<span class="stat-unit">%</span></span></div>
+          <div class="stat-item"><span class="stat-label">🔺 Máx. hoy</span><span class="stat-val">${!isNaN(tMaxHoy)?Math.round(tMaxHoy)+'°':'—'}</span></div>
+          <div class="stat-item"><span class="stat-label">🔻 Mín. hoy</span><span class="stat-val">${!isNaN(tMinHoy)?Math.round(tMinHoy)+'°':'—'}</span></div>
         </div>
       </div>
       <div class="update-bar">
@@ -631,17 +684,32 @@ async function renderWithAEMET(aeData, marineData) {
     const dKey   = dObj.fecha.slice(0,10);
     const dName  = i===0?'HOY':i===1?'MAÑANA':DAYS[dDate.getDay()];
     const dStr   = `${dDate.getDate()} ${MONTHS[dDate.getMonth()]}`;
-    const tMax   = parseFloat(dObj.temperatura?.maxima ?? dObj.temperatura?.value ?? '--');
-    const tMin   = parseFloat(dObj.temperatura?.minima ?? '--');
-    // Viento max
-    const vArr2  = dObj.viento?.dato || dObj.viento || [];
-    const vMax   = Array.isArray(vArr2) ? Math.max(...vArr2.map(v=>parseFloat(v.velocidad||0)).filter(x=>!isNaN(x)), 0) : 0;
-    // Lluvia
-    const rain   = parseFloat(dObj.precipitacion?.value || 0);
-    // Cielo: tomar periodo 12-24
-    const skArr  = dObj.estadoCielo?.dato || dObj.estadoCielo || [];
-    const skTar  = Array.isArray(skArr) ? (skArr.find(s=>s.periodo==='12-24')||skArr.find(s=>s.periodo==='00-24')||skArr[0]||{value:'13'}) : {value:'13'};
-    const skCode = skTar.value || '13';
+    const tMax   = parseFloat(dObj.temperatura?.maxima);
+    const tMin   = parseFloat(dObj.temperatura?.minima);
+    // Viento max del día
+    const vArr2  = dObj.viento;
+    const vMax   = Array.isArray(vArr2)
+      ? Math.max(...vArr2.map(v=>parseFloat(v.velocidad||0)).filter(x=>!isNaN(x)&&x>0), 0)
+      : 0;
+    // Dirección del viento predominante (periodo 00-24 o el último disponible)
+    const vDirObj = Array.isArray(vArr2)
+      ? (vArr2.find(v=>v.periodo==='00-24')||vArr2.find(v=>v.direccion&&v.direccion!=='')||vArr2[0])
+      : null;
+    const vDirStr = vDirObj?.direccion || '';
+    // Probabilidad lluvia
+    const probArr2 = dObj.probPrecipitacion;
+    const probMax  = Array.isArray(probArr2)
+      ? Math.max(...probArr2.map(p=>parseFloat(p.value||0)).filter(x=>!isNaN(x)), 0)
+      : 0;
+    // Cielo: tomar periodo diurno 12-24 o 00-24
+    const skArr  = dObj.estadoCielo;
+    const skBest = Array.isArray(skArr)
+      ? (skArr.find(s=>s.periodo==='12-24'&&s.value!=='')||
+         skArr.find(s=>s.periodo==='00-24'&&s.value!=='')||
+         skArr.find(s=>s.value&&s.value!=='')||
+         skArr[0]||{value:'13'})
+      : {value:'13'};
+    const skCode = skBest?.value || '13';
     const tideD  = getTideData(dKey);
     const coefD  = tideD ? tideD.coef : null;
     const snowD  = snowLevel(!isNaN(tMax) ? tMax : 15);
@@ -652,8 +720,8 @@ async function renderWithAEMET(aeData, marineData) {
         <div class="fc-tmax">${!isNaN(tMax)?Math.round(tMax)+'°':'—'}</div>
         <div class="fc-tmin">${!isNaN(tMin)?Math.round(tMin)+'°':'—'}</div>
         <div class="fc-detail">
-          <div>🌧️ <span>${rain.toFixed(1)}mm</span></div>
-          <div>💨 <span>${Math.round(vMax)}km/h</span></div>
+          <div>🌧️ <span>${Math.round(probMax)}%</span></div>
+          <div>💨 <span>${Math.round(vMax)}km/h${vDirStr?' '+vDirStr:''}</span></div>
           <div>❄️ <span>${snowD>0?snowD.toLocaleString('es')+'m':'<100m'}</span></div>
           ${coefD ? `<div>🌊 <span>Coef. ${coefD}</span></div>` : ''}
         </div>
