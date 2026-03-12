@@ -277,6 +277,132 @@
     color:#ffcc66; padding:12px 18px; border-radius:4px; font-size:.8rem; margin:10px 0; line-height:1.6;
   }
 
+  /* ── ALERTAS ── */
+  .alert-panel {
+    border-radius:4px; padding:0; margin:14px 0;
+    overflow:hidden; backdrop-filter:blur(10px);
+    border:1px solid rgba(0,245,255,.15);
+  }
+  .alert-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 20px;
+    background:rgba(0,20,40,.8);
+    border-bottom:1px solid rgba(0,245,255,.1);
+    cursor:default;
+  }
+  .alert-header-left {
+    display:flex; align-items:center; gap:10px;
+    font-family:'Orbitron',monospace; font-size:.78rem;
+    letter-spacing:.25em; color:var(--cyan); text-transform:uppercase;
+  }
+  .alert-dot-ok  { width:8px;height:8px;border-radius:50%;background:#00ff88;box-shadow:0 0 8px #00ff88;flex-shrink:0; }
+  .alert-dot-warn{ width:8px;height:8px;border-radius:50%;background:#ffaa00;box-shadow:0 0 10px #ffaa00;flex-shrink:0;animation:pulse 1.5s ease-in-out infinite; }
+  .alert-dot-red { width:8px;height:8px;border-radius:50%;background:#ff3333;box-shadow:0 0 12px #ff3333;flex-shrink:0;animation:pulse .8s ease-in-out infinite; }
+  .alert-ts { font-size:.62rem; color:rgba(0,245,255,.4); letter-spacing:.12em; }
+
+  .alert-none {
+    padding:16px 20px;
+    background:rgba(0,255,136,.04);
+    font-size:.82rem; color:rgba(0,255,136,.6);
+    letter-spacing:.1em; display:flex; align-items:center; gap:10px;
+  }
+
+  .alert-item {
+    padding:16px 20px;
+    border-bottom:1px solid rgba(255,255,255,.05);
+    display:flex; gap:14px; align-items:flex-start;
+  }
+  .alert-item:last-child { border-bottom:none; }
+
+  .alert-item.nivel-amarillo { background:rgba(255,200,0,.07); border-left:3px solid #ffcc00; }
+  .alert-item.nivel-naranja  { background:rgba(255,120,0,.08);  border-left:3px solid #ff7700; }
+  .alert-item.nivel-rojo     { background:rgba(255,40,40,.1);   border-left:3px solid #ff2222; }
+
+  .alert-icon { font-size:1.6rem; flex-shrink:0; margin-top:2px; }
+  .alert-body { flex:1; }
+  .alert-tipo {
+    font-family:'Orbitron',monospace; font-size:.72rem;
+    font-weight:700; letter-spacing:.18em; text-transform:uppercase; margin-bottom:4px;
+  }
+  .alert-item.nivel-amarillo .alert-tipo { color:#ffcc00; }
+  .alert-item.nivel-naranja  .alert-tipo { color:#ff8800; }
+  .alert-item.nivel-rojo     .alert-tipo { color:#ff4444; }
+
+  .alert-desc { font-size:.8rem; color:rgba(220,230,255,.75); line-height:1.5; }
+  .alert-meta { font-size:.68rem; color:rgba(150,180,220,.5); margin-top:5px; letter-spacing:.08em; }
+
+  .nivel-badge {
+    display:inline-block; border-radius:3px; padding:2px 8px;
+    font-family:'Orbitron',monospace; font-size:.6rem; font-weight:700;
+    letter-spacing:.15em; margin-left:8px; vertical-align:middle;
+  }
+  .badge-amarillo { background:rgba(255,204,0,.2);  color:#ffcc00; border:1px solid rgba(255,204,0,.4); }
+  .badge-naranja  { background:rgba(255,136,0,.2);  color:#ff8800; border:1px solid rgba(255,136,0,.4); }
+  .badge-rojo     { background:rgba(255,50,50,.2);  color:#ff4444; border:1px solid rgba(255,50,50,.4); }
+
+  /* ── RADAR ── */
+  .radar-section {
+    background: rgba(0,20,40,.75);
+    border: 1px solid rgba(0,245,255,.2);
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 14px 0;
+    backdrop-filter: blur(10px);
+    position: relative;
+  }
+  .radar-section::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,transparent,var(--cyan),var(--teal),transparent);
+    animation:scan 4s linear infinite; z-index:10; pointer-events:none;
+  }
+  .radar-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:13px 20px;
+    background:rgba(0,15,35,.8);
+    border-bottom:1px solid rgba(0,245,255,.1);
+  }
+  .radar-header-left {
+    display:flex; align-items:center; gap:10px;
+    font-family:'Orbitron',monospace; font-size:.78rem;
+    letter-spacing:.25em; color:var(--cyan); text-transform:uppercase;
+  }
+  .radar-controls {
+    display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+  }
+  .radar-btn {
+    background:rgba(0,245,255,.08);
+    border:1px solid rgba(0,245,255,.3);
+    border-radius:3px; padding:5px 14px;
+    color:var(--cyan); font-family:'Orbitron',monospace;
+    font-size:.65rem; letter-spacing:.15em; cursor:pointer;
+    transition:all .2s; text-transform:uppercase;
+  }
+  .radar-btn:hover, .radar-btn.active {
+    background:rgba(0,245,255,.2);
+    box-shadow:0 0 10px rgba(0,245,255,.2);
+  }
+  .radar-ts {
+    font-size:.65rem; color:rgba(0,245,255,.5);
+    letter-spacing:.12em; min-width:80px; text-align:right;
+  }
+  #radar-map {
+    width:100%; height:460px;
+    background:#000d1a;
+  }
+  .radar-footer {
+    padding:7px 16px;
+    background:rgba(0,10,25,.7);
+    font-size:.62rem; color:rgba(0,245,255,.35);
+    letter-spacing:.12em; display:flex;
+    justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;
+  }
+  .radar-legend {
+    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+  }
+  .radar-legend span {
+    display:inline-block; width:14px; height:8px; border-radius:2px;
+  }
+
   /* ── FOOTER ── */
   footer { text-align:center; padding:35px 0 22px; }
   footer::before { content:''; display:block; height:1px; background:linear-gradient(90deg,transparent,rgba(0,245,255,.2),transparent); margin-bottom:22px; }
@@ -302,6 +428,9 @@
     <div class="hline hline-bot"></div>
   </header>
 
+  <!-- PANEL ALERTAS AEMET -->
+  <div id="alertas-panel"></div>
+
   <!-- API KEY integrada — panel oculto -->
   <div style="display:none" id="apikeyPanel">
     <input id="keyInput" type="hidden" value="" />
@@ -310,6 +439,35 @@
 
   <div id="main-content">
     <div class="loading">INICIANDO SISTEMA<span class="spinner"></span></div>
+  </div>
+
+  <!-- RADAR DE LLUVIA -->
+  <div class="section-title" style="margin-top:35px">🌧️ Radar de lluvia · Asturias en tiempo real</div>
+  <div class="radar-section">
+    <div class="radar-header">
+      <div class="radar-header-left">
+        📡 Radar meteorológico · RainViewer + AEMET
+      </div>
+      <div class="radar-controls">
+        <button class="radar-btn" id="btn-play" onclick="radarPlayStop()">▶ PLAY</button>
+        <button class="radar-btn" onclick="radarPrev()">◀</button>
+        <button class="radar-btn" onclick="radarNext()">▶</button>
+        <div class="radar-ts" id="radar-ts">--:--</div>
+      </div>
+    </div>
+    <div id="radar-map"></div>
+    <div class="radar-footer">
+      <div class="radar-legend">
+        <span style="background:#99ccff"></span>Llovizna
+        <span style="background:#3399ff"></span>Ligera
+        <span style="background:#0033cc"></span>Moderada
+        <span style="background:#00cc44"></span>Fuerte
+        <span style="background:#ffcc00"></span>Muy fuerte
+        <span style="background:#ff6600"></span>Intensa
+        <span style="background:#cc0000"></span>Extrema
+      </div>
+      <div>Actualización cada 10 min · RainViewer API</div>
+    </div>
   </div>
 
   <footer>
@@ -894,6 +1052,162 @@ function buildSeaSection(coef, cInfo, waveH, waveDir, sea, tideToday) {
     </div>`;
 }
 
+// ── ALERTAS AEMET ──────────────────────────────────────────
+// Zona AEMET para Asturias costera: "0" → código CAP zona Asturias = "33"
+// Endpoint: /api/avisos_cap/archivo/nacional/
+async function fetchAlertas(apiKey) {
+  const proxy = 'https://api.allorigins.win/get?url=';
+  // Avisos CAP para Asturias (cod. provincia 33)
+  const ep = `https://opendata.aemet.es/opendata/api/avisos_cap/ultimoelaborado/area/33?api_key=${apiKey}`;
+  try {
+    const r1 = await fetch(proxy + encodeURIComponent(ep));
+    const j1 = await r1.json();
+    const body1 = JSON.parse(j1.contents);
+    if (body1.estado !== 200) return [];
+    const r2 = await fetch(proxy + encodeURIComponent(body1.datos));
+    const j2 = await r2.json();
+    // Los datos vienen en formato CAP/XML o JSON según endpoint
+    // Si viene como texto XML lo parseamos, si es JSON directo lo usamos
+    const raw = j2.contents;
+    if (!raw) return [];
+    // Intentar parsear como JSON array
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [parsed];
+    } catch {
+      // Parsear XML CAP
+      return parseCapXML(raw);
+    }
+  } catch(e) {
+    console.warn('Alertas AEMET no disponibles:', e);
+    return [];
+  }
+}
+
+function parseCapXML(xmlStr) {
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xmlStr, 'text/xml');
+    const alerts = [];
+    const infos = doc.querySelectorAll('info');
+    infos.forEach(info => {
+      const lang = info.querySelector('language')?.textContent || '';
+      if (lang && lang !== 'es-ES' && lang !== 'es') return;
+      const event    = info.querySelector('event')?.textContent || '';
+      const headline = info.querySelector('headline')?.textContent || '';
+      const desc     = info.querySelector('description')?.textContent || '';
+      const onset    = info.querySelector('onset')?.textContent || '';
+      const expires  = info.querySelector('expires')?.textContent || '';
+      // Nivel de alerta desde parámetros CAP
+      let nivel = 'amarillo';
+      info.querySelectorAll('parameter').forEach(p => {
+        const pname = p.querySelector('valueName')?.textContent || '';
+        const pval  = p.querySelector('value')?.textContent || '';
+        if (pname.toLowerCase().includes('nivel') || pname.toLowerCase().includes('level')) {
+          if (pval.toLowerCase().includes('rojo')   || pval.toLowerCase().includes('red'))    nivel = 'rojo';
+          if (pval.toLowerCase().includes('naranja')|| pval.toLowerCase().includes('orange')) nivel = 'naranja';
+          if (pval.toLowerCase().includes('amarill')|| pval.toLowerCase().includes('yellow')) nivel = 'amarillo';
+        }
+      });
+      // También inferir nivel desde severity
+      const severity = info.querySelector('severity')?.textContent?.toLowerCase() || '';
+      if (severity === 'extreme')  nivel = 'rojo';
+      if (severity === 'severe')   nivel = 'naranja';
+      if (severity === 'moderate') nivel = 'amarillo';
+
+      alerts.push({ event, headline, desc, onset, expires, nivel });
+    });
+    return alerts;
+  } catch(e) {
+    return [];
+  }
+}
+
+function renderAlertas(alerts, lastUpdate) {
+  const panel = document.getElementById('alertas-panel');
+  if (!panel) return;
+
+  const ts = lastUpdate
+    ? `${String(lastUpdate.getHours()).padStart(2,'0')}:${String(lastUpdate.getMinutes()).padStart(2,'0')}`
+    : '--:--';
+
+  // Tipos de fenómeno → emoji
+  function alertIcon(event) {
+    const e = (event||'').toLowerCase();
+    if (e.includes('viento') || e.includes('wind'))      return '💨';
+    if (e.includes('lluvia') || e.includes('rain'))      return '🌧️';
+    if (e.includes('nieve') || e.includes('snow'))       return '❄️';
+    if (e.includes('tormenta') || e.includes('storm'))   return '⛈️';
+    if (e.includes('niebla') || e.includes('fog'))       return '🌫️';
+    if (e.includes('marea') || e.includes('coastal'))    return '🌊';
+    if (e.includes('calor') || e.includes('heat'))       return '🌡️';
+    if (e.includes('frio') || e.includes('cold'))        return '🧊';
+    if (e.includes('fuego') || e.includes('fire'))       return '🔥';
+    if (e.includes('rayos') || e.includes('lightning'))  return '⚡';
+    return '⚠️';
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    } catch { return iso; }
+  }
+
+  const hayAlertas = alerts && alerts.length > 0;
+
+  // Elegir dot según nivel máximo
+  let dotClass = 'alert-dot-ok';
+  if (hayAlertas) {
+    const niveles = alerts.map(a=>a.nivel||'amarillo');
+    if (niveles.includes('rojo'))    dotClass = 'alert-dot-red';
+    else if (niveles.includes('naranja')) dotClass = 'alert-dot-warn';
+    else dotClass = 'alert-dot-warn';
+  }
+
+  let html = `
+    <div class="alert-panel">
+      <div class="alert-header">
+        <div class="alert-header-left">
+          <div class="${dotClass}"></div>
+          ⚠️ Alertas AEMET · Asturias / Llanes
+        </div>
+        <div class="alert-ts">ACT. ${ts}</div>
+      </div>`;
+
+  if (!hayAlertas) {
+    html += `
+      <div class="alert-none">
+        ✅ &nbsp;Sin alertas activas en este momento para la zona de Llanes
+      </div>`;
+  } else {
+    alerts.forEach(a => {
+      const nivel  = a.nivel || 'amarillo';
+      const badge  = `<span class="nivel-badge badge-${nivel}">${nivel.toUpperCase()}</span>`;
+      const titulo = a.headline || a.event || 'Aviso meteorológico';
+      const desc   = a.desc ? a.desc.slice(0, 220) + (a.desc.length > 220 ? '…' : '') : '';
+      const meta   = [
+        a.onset   ? '▶ Inicio: '   + formatDate(a.onset)   : '',
+        a.expires ? '⏹ Fin: '      + formatDate(a.expires) : ''
+      ].filter(Boolean).join('  ·  ');
+
+      html += `
+        <div class="alert-item nivel-${nivel}">
+          <div class="alert-icon">${alertIcon(a.event)}</div>
+          <div class="alert-body">
+            <div class="alert-tipo">${titulo}${badge}</div>
+            ${desc ? `<div class="alert-desc">${desc}</div>` : ''}
+            ${meta ? `<div class="alert-meta">${meta}</div>` : ''}
+          </div>
+        </div>`;
+    });
+  }
+
+  html += `</div>`;
+  panel.innerHTML = html;
+}
+
 // ── INIT ───────────────────────────────────────────────────
 async function init() {
   const apiKey = getKey();
@@ -901,15 +1215,22 @@ async function init() {
     document.getElementById('keyInput').value = apiKey;
     try {
       document.getElementById('main-content').innerHTML = '<div class="loading">CONECTANDO CON AEMET<span class="spinner"></span></div>';
-      const [aeData, marineData] = await Promise.all([fetchAEMET(apiKey), fetchMarine()]);
+      const [aeData, marineData, alertas] = await Promise.all([
+        fetchAEMET(apiKey),
+        fetchMarine(),
+        fetchAlertas(apiKey)
+      ]);
       setStatus('✓ Datos AEMET cargados correctamente','ok');
+      renderAlertas(alertas, new Date());
       renderWithAEMET(aeData, marineData);
     } catch(err) {
       console.error('AEMET error:', err);
       setStatus('⚠️ Error con AEMET ('+err.message+'). Usando Open-Meteo…','err');
+      renderAlertas([], new Date());
       try { await renderWithFallback(); } catch(e2) { showError(e2); }
     }
   } else {
+    renderAlertas([], new Date());
     try { await renderWithFallback(); } catch(e) { showError(e); }
   }
 }
@@ -922,6 +1243,162 @@ function showError(err) {
 
 init();
 setInterval(init, 30*60*1000);
+</script>
+
+<!-- ═══ LEAFLET + RAINVIEWER RADAR ═══ -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+// ════════════════════════════════════════════════════════
+//  RADAR DE LLUVIA — RainViewer API + Leaflet
+//  Centrado en Asturias, zoom 8
+// ════════════════════════════════════════════════════════
+const RADAR_LAT = 43.36, RADAR_LON = -5.85, RADAR_ZOOM = 8;
+
+let radarMap, radarFrames = [], radarPos = 0, radarTimer = null;
+let radarLayers = {}, radarPlaying = false;
+let radarHost = '';
+
+function initRadar() {
+  // Crear mapa Leaflet centrado en Asturias
+  radarMap = L.map('radar-map', {
+    center: [RADAR_LAT, RADAR_LON],
+    zoom: RADAR_ZOOM,
+    zoomControl: true,
+    attributionControl: true
+  });
+
+  // Capa base oscura (CartoDB Dark Matter)
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '© OpenStreetMap © CARTO',
+    subdomains: 'abcd', maxZoom: 19
+  }).addTo(radarMap);
+
+  // Marcador de Llanes
+  const llanesIcon = L.divIcon({
+    className: '',
+    html: `<div style="
+      background:rgba(0,245,255,.9); color:#000;
+      font-family:'Orbitron',monospace; font-size:9px; font-weight:700;
+      padding:3px 7px; border-radius:3px; white-space:nowrap;
+      box-shadow:0 0 8px rgba(0,245,255,.6);
+    ">LLANES</div>`,
+    iconAnchor: [30, 10]
+  });
+  L.marker([43.4206, -4.7549], { icon: llanesIcon }).addTo(radarMap);
+
+  // Cargar frames de RainViewer
+  loadRadarFrames();
+
+  // Refrescar radar cada 10 minutos
+  setInterval(loadRadarFrames, 10 * 60 * 1000);
+}
+
+async function loadRadarFrames() {
+  try {
+    const res = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+    const data = await res.json();
+    radarHost = data.host;
+
+    // Frames pasados + nowcast (predicción corta)
+    const past = data.radar.past || [];
+    const now  = data.radar.nowcast || [];
+    const allFrames = [...past, ...now];
+
+    // Limpiar capas viejas
+    Object.values(radarLayers).forEach(l => { if (radarMap.hasLayer(l)) radarMap.removeLayer(l); });
+    radarLayers = {};
+
+    radarFrames = allFrames;
+
+    // Precreamos capas (lazy: se añaden al mostrar)
+    allFrames.forEach(frame => {
+      radarLayers[frame.time] = L.tileLayer(
+        `${radarHost}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,
+        { opacity: 0.7, zIndex: 10 }
+      );
+    });
+
+    // Mostrar el frame más reciente (pasado)
+    radarPos = past.length - 1;
+    showRadarFrame(radarPos);
+
+  } catch(e) {
+    console.warn('RainViewer error:', e);
+    document.getElementById('radar-ts').textContent = 'Sin datos';
+  }
+}
+
+function showRadarFrame(idx) {
+  if (!radarFrames.length) return;
+  idx = Math.max(0, Math.min(idx, radarFrames.length - 1));
+  radarPos = idx;
+
+  // Ocultar todas las capas
+  Object.values(radarLayers).forEach(l => {
+    if (radarMap.hasLayer(l)) radarMap.removeLayer(l);
+  });
+
+  const frame = radarFrames[idx];
+  if (!radarLayers[frame.time]) return;
+
+  radarLayers[frame.time].addTo(radarMap);
+
+  // Timestamp
+  const d = new Date(frame.time * 1000);
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mm = String(d.getMinutes()).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mo = String(d.getMonth()+1).padStart(2,'0');
+  // Distinguir pasado vs nowcast
+  const isPast = (frame.time * 1000) <= Date.now();
+  document.getElementById('radar-ts').textContent =
+    (isPast ? '' : '🔮 ') + `${dd}/${mo} ${hh}:${mm}`;
+}
+
+function radarPlayStop() {
+  radarPlaying = !radarPlaying;
+  const btn = document.getElementById('btn-play');
+  if (radarPlaying) {
+    btn.textContent = '⏸ PAUSA';
+    btn.classList.add('active');
+    radarAnimate();
+  } else {
+    btn.textContent = '▶ PLAY';
+    btn.classList.remove('active');
+    clearTimeout(radarTimer);
+  }
+}
+
+function radarAnimate() {
+  if (!radarPlaying) return;
+  radarPos = (radarPos + 1) % radarFrames.length;
+  showRadarFrame(radarPos);
+  // Pausa más larga en el último frame
+  const delay = (radarPos === radarFrames.length - 1) ? 2000 : 500;
+  radarTimer = setTimeout(radarAnimate, delay);
+}
+
+function radarPrev() {
+  clearTimeout(radarTimer);
+  radarPlaying = false;
+  document.getElementById('btn-play').textContent = '▶ PLAY';
+  document.getElementById('btn-play').classList.remove('active');
+  showRadarFrame(radarPos - 1);
+}
+
+function radarNext() {
+  clearTimeout(radarTimer);
+  radarPlaying = false;
+  document.getElementById('btn-play').textContent = '▶ PLAY';
+  document.getElementById('btn-play').classList.remove('active');
+  showRadarFrame(radarPos + 1);
+}
+
+// Iniciar radar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', initRadar);
+// Por si DOMContentLoaded ya pasó
+if (document.readyState !== 'loading') initRadar();
 </script>
 </body>
 </html>
