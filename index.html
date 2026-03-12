@@ -8,16 +8,12 @@
 <style>
   :root {
     --cyan: #00f5ff;
-    --blue: #0080ff;
-    --dark-blue: #001a33;
-    --darker: #000d1a;
     --teal: #00e5cc;
+    --darker: #000d1a;
     --warn: #ff6b35;
-    --glow: 0 0 10px rgba(0,245,255,0.6), 0 0 30px rgba(0,245,255,0.2);
-    --glow-sm: 0 0 6px rgba(0,245,255,0.5);
+    --gold: #ffd700;
   }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin:0; padding:0; box-sizing:border-box; }
 
   body {
     background: var(--darker);
@@ -25,569 +21,272 @@
     font-family: 'Rajdhani', sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
-    position: relative;
   }
 
-  /* Animated grid background */
   body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
+    content:'';
+    position:fixed; inset:0;
     background-image:
       linear-gradient(rgba(0,245,255,0.04) 1px, transparent 1px),
       linear-gradient(90deg, rgba(0,245,255,0.04) 1px, transparent 1px);
-    background-size: 60px 60px;
-    animation: gridMove 20s linear infinite;
-    pointer-events: none;
-    z-index: 0;
+    background-size:60px 60px;
+    animation:gridMove 20s linear infinite;
+    pointer-events:none; z-index:0;
   }
 
   body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
+    content:'';
+    position:fixed; inset:0;
     background: radial-gradient(ellipse at 50% 0%, rgba(0,128,255,0.15) 0%, transparent 60%),
                 radial-gradient(ellipse at 80% 100%, rgba(0,229,204,0.08) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
+    pointer-events:none; z-index:0;
   }
 
-  @keyframes gridMove {
-    0% { transform: perspective(500px) rotateX(0deg) translateY(0); }
-    100% { transform: perspective(500px) rotateX(0deg) translateY(60px); }
-  }
+  @keyframes gridMove { 0%{background-position:0 0} 100%{background-position:60px 60px} }
 
-  .container {
-    position: relative;
-    z-index: 1;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-  }
+  .container { position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:20px; }
 
-  /* HEADER */
-  header {
-    text-align: center;
-    padding: 40px 0 30px;
-    position: relative;
-  }
+  /* ── HEADER ── */
+  header { text-align:center; padding:40px 0 30px; position:relative; }
 
-  .header-line {
-    position: absolute;
-    top: 50%;
-    left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-    opacity: 0.4;
+  .hline {
+    position:absolute; left:0; right:0; height:1px;
+    background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+    opacity:.35;
   }
-
-  .title-wrap {
-    display: inline-block;
-    position: relative;
-    padding: 0 30px;
-  }
+  .hline-top{top:0} .hline-bot{bottom:0}
 
   h1 {
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(1.8rem, 5vw, 3.5rem);
-    font-weight: 900;
-    letter-spacing: 0.15em;
-    background: linear-gradient(135deg, #ffffff 0%, var(--cyan) 50%, var(--teal) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: none;
-    filter: drop-shadow(0 0 15px rgba(0,245,255,0.4));
+    font-family:'Orbitron',monospace;
+    font-size:clamp(1.8rem,5vw,3.5rem);
+    font-weight:900; letter-spacing:.15em;
+    background:linear-gradient(135deg,#fff 0%,var(--cyan) 50%,var(--teal) 100%);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    filter:drop-shadow(0 0 15px rgba(0,245,255,.4));
   }
 
-  .subtitle {
-    font-size: 0.85rem;
-    letter-spacing: 0.4em;
-    color: var(--teal);
-    margin-top: 8px;
-    opacity: 0.8;
-    text-transform: uppercase;
-  }
+  .subtitle { font-size:.85rem; letter-spacing:.4em; color:var(--teal); margin-top:8px; opacity:.8; text-transform:uppercase; }
+  .coords   { font-size:.75rem; color:var(--cyan); opacity:.55; letter-spacing:.2em; margin-top:4px; }
 
-  .coords {
-    font-size: 0.75rem;
-    color: var(--cyan);
-    opacity: 0.6;
-    letter-spacing: 0.2em;
-    margin-top: 4px;
+  /* ── API KEY PANEL ── */
+  .apikey-panel {
+    background:rgba(0,20,40,.85);
+    border:1px solid rgba(0,245,255,.25);
+    border-radius:4px; padding:20px 24px;
+    margin:24px 0; backdrop-filter:blur(10px);
+    position:relative; overflow:hidden;
   }
+  .apikey-panel::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent); opacity:.6;
+  }
+  .apikey-title {
+    font-family:'Orbitron',monospace; font-size:.75rem;
+    letter-spacing:.3em; color:var(--gold); margin-bottom:10px; text-transform:uppercase;
+  }
+  .apikey-desc { font-size:.82rem; color:rgba(200,230,255,.65); margin-bottom:14px; line-height:1.6; }
+  .apikey-desc a { color:var(--cyan); }
+  .apikey-row { display:flex; gap:10px; flex-wrap:wrap; }
+  .apikey-input {
+    flex:1; min-width:260px;
+    background:rgba(0,245,255,.05);
+    border:1px solid rgba(0,245,255,.2);
+    border-radius:3px; padding:10px 14px;
+    color:#fff; font-family:'Rajdhani',sans-serif; font-size:.9rem;
+    outline:none; letter-spacing:.05em;
+  }
+  .apikey-input:focus { border-color:var(--cyan); }
+  .apikey-input::placeholder { color:rgba(0,245,255,.3); }
+  .btn {
+    background:rgba(0,245,255,.1);
+    border:1px solid rgba(0,245,255,.4);
+    border-radius:3px; padding:10px 20px;
+    color:var(--cyan); font-family:'Orbitron',monospace;
+    font-size:.7rem; letter-spacing:.2em;
+    cursor:pointer; transition:all .25s; white-space:nowrap;
+    text-transform:uppercase;
+  }
+  .btn:hover { background:rgba(0,245,255,.2); box-shadow:0 0 12px rgba(0,245,255,.2); }
+  .apikey-status { font-size:.75rem; margin-top:8px; letter-spacing:.1em; min-height:18px; }
+  .ok  { color:#00ff88; }
+  .err { color:#ff6666; }
 
-  /* CURRENT WEATHER HERO */
+  /* ── SECTION TITLES ── */
+  .section-title {
+    font-family:'Orbitron',monospace; font-size:.82rem;
+    letter-spacing:.38em; color:var(--cyan); text-transform:uppercase;
+    display:flex; align-items:center; gap:14px; margin:35px 0 14px;
+  }
+  .section-title::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,rgba(0,245,255,.4),transparent); }
+
+  /* ── CURRENT ── */
   .current-section {
-    background: rgba(0,20,40,0.7);
-    border: 1px solid rgba(0,245,255,0.2);
-    border-radius: 4px;
-    padding: 30px;
-    margin: 30px 0;
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(10px);
+    background:rgba(0,20,40,.7);
+    border:1px solid rgba(0,245,255,.2);
+    border-radius:4px; padding:30px; margin:24px 0;
+    position:relative; overflow:hidden; backdrop-filter:blur(10px);
   }
-
   .current-section::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--cyan), var(--teal), transparent);
-    animation: scanline 3s linear infinite;
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,transparent,var(--cyan),var(--teal),transparent);
+    animation:scan 3s linear infinite;
   }
-
-  @keyframes scanline {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
-  }
+  @keyframes scan { 0%,100%{opacity:.5} 50%{opacity:1} }
 
   .current-grid {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    gap: 30px;
-    align-items: center;
+    display:grid; grid-template-columns:1fr auto 1fr; gap:30px; align-items:center;
   }
+  @media(max-width:720px){
+    .current-grid{grid-template-columns:1fr}
+    .cdivider{display:none}
+    .forecast-grid{grid-template-columns:repeat(4,1fr)}
+  }
+  @media(max-width:480px){ .forecast-grid{grid-template-columns:repeat(2,1fr)} }
 
-  .current-temp-display {
-    text-align: center;
+  .temp-display { text-align:center; }
+  .temp-val {
+    font-family:'Orbitron',monospace;
+    font-size:clamp(4rem,10vw,7rem); font-weight:900; color:#fff; line-height:1;
+    filter:drop-shadow(0 0 12px rgba(0,245,255,.5));
   }
+  .temp-unit { color:var(--cyan); font-size:.38em; vertical-align:super; }
+  .cur-desc { font-size:1.05rem; letter-spacing:.25em; color:var(--cyan); text-transform:uppercase; margin-top:10px; }
 
-  .temp-value {
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(4rem, 10vw, 7rem);
-    font-weight: 900;
-    color: #fff;
-    line-height: 1;
-    filter: drop-shadow(var(--glow-sm));
-  }
+  .cdivider { width:1px; height:130px; background:linear-gradient(180deg,transparent,var(--cyan),transparent); opacity:.35; }
 
-  .temp-unit {
-    color: var(--cyan);
-    font-size: 0.4em;
-    vertical-align: super;
-  }
-
-  .current-desc {
-    font-size: 1.1rem;
-    letter-spacing: 0.3em;
-    color: var(--cyan);
-    text-transform: uppercase;
-    margin-top: 8px;
-  }
-
-  .current-divider {
-    width: 1px;
-    height: 120px;
-    background: linear-gradient(180deg, transparent, var(--cyan), transparent);
-    opacity: 0.4;
-  }
-
-  .current-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-  }
+  .cur-stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 
   .stat-item {
-    background: rgba(0,245,255,0.05);
-    border: 1px solid rgba(0,245,255,0.15);
-    border-radius: 3px;
-    padding: 12px 15px;
-    position: relative;
+    background:rgba(0,245,255,.04);
+    border:1px solid rgba(0,245,255,.13);
+    border-radius:3px; padding:12px 14px;
   }
+  .stat-label { font-size:.62rem; letter-spacing:.26em; color:var(--teal); text-transform:uppercase; opacity:.75; display:block; margin-bottom:4px; }
+  .stat-val { font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:700; color:#fff; }
+  .stat-unit { font-size:.65rem; color:var(--cyan); margin-left:3px; }
 
-  .stat-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.3em;
-    color: var(--teal);
-    text-transform: uppercase;
-    opacity: 0.8;
-    display: block;
-    margin-bottom: 4px;
+  .update-bar {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:8px 0; border-top:1px solid rgba(0,245,255,.08);
+    margin-top:20px; font-size:.68rem; color:rgba(0,245,255,.38);
+    letter-spacing:.12em; flex-wrap:wrap; gap:6px;
   }
-
-  .stat-value {
-    font-family: 'Orbitron', monospace;
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #fff;
+  .live-dot {
+    display:inline-block; width:6px; height:6px; background:#00ff88;
+    border-radius:50%; margin-right:7px;
+    animation:pulse 2s ease-in-out infinite; box-shadow:0 0 7px #00ff88;
   }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.45;transform:scale(.75)} }
 
-  .stat-unit {
-    font-size: 0.7rem;
-    color: var(--cyan);
-    margin-left: 3px;
+  /* ── FORECAST ── */
+  .forecast-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:8px; }
+
+  .fc-card {
+    background:rgba(0,15,30,.8); border:1px solid rgba(0,245,255,.12);
+    border-radius:4px; padding:14px 10px; text-align:center;
+    transition:all .3s; position:relative; overflow:hidden;
   }
-
-  /* SECTION TITLES */
-  .section-title {
-    font-family: 'Orbitron', monospace;
-    font-size: 0.85rem;
-    letter-spacing: 0.4em;
-    color: var(--cyan);
-    text-transform: uppercase;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin: 35px 0 15px;
+  .fc-card:hover { border-color:rgba(0,245,255,.45); transform:translateY(-2px); background:rgba(0,30,60,.9); box-shadow:0 8px 25px rgba(0,245,255,.1); }
+  .fc-card.today { border-color:rgba(0,245,255,.4); background:rgba(0,40,80,.6); }
+  .fc-card.today::before {
+    content:'HOY'; position:absolute; top:0; left:0; right:0;
+    background:var(--cyan); color:#000;
+    font-family:'Orbitron',monospace; font-size:.53rem; font-weight:700;
+    letter-spacing:.2em; padding:2px 0;
   }
-
-  .section-title::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, rgba(0,245,255,0.4), transparent);
-  }
-
-  /* 7-DAY FORECAST */
-  .forecast-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 8px;
-  }
-
-  @media (max-width: 900px) {
-    .forecast-grid { grid-template-columns: repeat(4, 1fr); }
-    .current-grid { grid-template-columns: 1fr; }
-    .current-divider { display: none; }
-  }
-  @media (max-width: 500px) {
-    .forecast-grid { grid-template-columns: repeat(2, 1fr); }
-  }
-
-  .forecast-card {
-    background: rgba(0,15,30,0.8);
-    border: 1px solid rgba(0,245,255,0.12);
-    border-radius: 4px;
-    padding: 15px 10px;
-    text-align: center;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    cursor: default;
-  }
-
-  .forecast-card:hover {
-    border-color: rgba(0,245,255,0.5);
-    background: rgba(0,30,60,0.9);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,245,255,0.1);
-  }
-
-  .forecast-card.today {
-    border-color: rgba(0,245,255,0.4);
-    background: rgba(0,40,80,0.6);
-  }
-
-  .forecast-card.today::before {
-    content: 'HOY';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    background: var(--cyan);
-    color: #000;
-    font-family: 'Orbitron', monospace;
-    font-size: 0.55rem;
-    font-weight: 700;
-    letter-spacing: 0.2em;
-    padding: 2px 0;
-  }
-
-  .fc-day {
-    font-family: 'Orbitron', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    color: var(--teal);
-    margin-bottom: 8px;
-    margin-top: 8px;
-  }
-
-  .forecast-card.today .fc-day { margin-top: 14px; }
-
-  .fc-icon {
-    font-size: 1.8rem;
-    margin: 6px 0;
-    filter: drop-shadow(0 0 8px rgba(0,245,255,0.4));
-  }
-
-  .fc-temp-max {
-    font-family: 'Orbitron', monospace;
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #fff;
-  }
-
-  .fc-temp-min {
-    font-size: 0.85rem;
-    color: rgba(200,230,255,0.5);
-    margin-top: 2px;
-  }
-
+  .fc-day { font-family:'Orbitron',monospace; font-size:.62rem; letter-spacing:.18em; color:var(--teal); margin-top:8px; margin-bottom:5px; }
+  .fc-card.today .fc-day { margin-top:16px; }
+  .fc-icon { font-size:1.75rem; margin:6px 0; filter:drop-shadow(0 0 8px rgba(0,245,255,.35)); }
+  .fc-tmax { font-family:'Orbitron',monospace; font-size:1.25rem; font-weight:700; color:#fff; }
+  .fc-tmin { font-size:.82rem; color:rgba(200,230,255,.45); margin-top:2px; }
   .fc-detail {
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(0,245,255,0.1);
-    font-size: 0.7rem;
-    color: rgba(150,200,255,0.7);
-    line-height: 1.8;
-    text-align: left;
+    margin-top:10px; padding-top:8px; border-top:1px solid rgba(0,245,255,.1);
+    font-size:.68rem; color:rgba(130,200,255,.65); line-height:1.9; text-align:left;
   }
+  .fc-detail span { color:var(--cyan); font-weight:600; }
 
-  .fc-detail span { color: var(--cyan); font-weight: 600; }
+  /* ── SNOW ── */
+  .snow-bar {
+    background:rgba(0,20,40,.7); border:1px solid rgba(150,200,255,.15);
+    border-radius:4px; padding:20px 24px; display:flex; align-items:center; gap:20px;
+    backdrop-filter:blur(5px);
+  }
+  .snow-icon { font-size:2rem; }
+  .snow-info { flex:1; }
+  .snow-lbl { font-size:.64rem; letter-spacing:.3em; color:rgba(150,200,255,.55); text-transform:uppercase; }
+  .snow-val { font-family:'Orbitron',monospace; font-size:1.8rem; font-weight:700; color:#e0f0ff; margin-top:2px; }
+  .snow-track { flex:2; height:6px; background:rgba(255,255,255,.1); border-radius:3px; overflow:hidden; }
+  .snow-fill { height:100%; width:0%; border-radius:3px; background:linear-gradient(90deg,var(--cyan),#a0d0ff); transition:width 1.5s ease; box-shadow:0 0 8px rgba(0,245,255,.4); }
 
-  /* SEA SECTION */
+  /* ── SEA ── */
   .sea-section {
-    background: rgba(0,20,40,0.7);
-    border: 1px solid rgba(0,229,204,0.2);
-    border-radius: 4px;
-    padding: 25px;
-    margin: 15px 0;
-    backdrop-filter: blur(10px);
-    position: relative;
-    overflow: hidden;
+    background:rgba(0,20,40,.7); border:1px solid rgba(0,229,204,.2);
+    border-radius:4px; padding:25px; position:relative; overflow:hidden;
+    backdrop-filter:blur(10px);
   }
+  .sea-wave { position:absolute; bottom:0; left:0; right:0; height:4px; background:linear-gradient(90deg,transparent,var(--teal),transparent); animation:wave 3s ease-in-out infinite; }
+  @keyframes wave { 0%,100%{transform:scaleX(.8);opacity:.4} 50%{transform:scaleX(1);opacity:.8} }
 
-  .sea-wave {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, transparent, var(--teal), transparent);
-    animation: wave 3s ease-in-out infinite;
-  }
-
-  @keyframes wave {
-    0%, 100% { transform: scaleX(0.8); opacity: 0.4; }
-    50% { transform: scaleX(1); opacity: 0.8; }
-  }
-
-  .sea-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
-  }
+  .sea-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:15px; margin-bottom:20px; }
 
   .sea-stat {
-    background: rgba(0,229,204,0.05);
-    border: 1px solid rgba(0,229,204,0.15);
-    border-radius: 3px;
-    padding: 15px;
-    text-align: center;
+    background:rgba(0,229,204,.05); border:1px solid rgba(0,229,204,.15);
+    border-radius:3px; padding:15px; text-align:center;
   }
+  .sea-stat .stat-label { color:var(--teal); }
+  .sea-stat .stat-val { font-family:'Orbitron',monospace; font-size:1.5rem; font-weight:700; color:var(--teal); }
 
-  .sea-stat .stat-label { color: var(--teal); }
-
-  .sea-stat .stat-value {
-    font-size: 1.6rem;
-    color: var(--teal);
-  }
-
-  /* TIDES */
-  .tides-title {
-    font-size: 0.75rem;
-    letter-spacing: 0.3em;
-    color: var(--teal);
-    margin: 15px 0 10px;
-    text-transform: uppercase;
-  }
-
-  .tides-row {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
+  /* ── TIDES ── */
+  .tides-lbl { font-size:.72rem; letter-spacing:.28em; color:var(--teal); margin:15px 0 10px; text-transform:uppercase; }
+  .tides-row { display:flex; gap:10px; flex-wrap:wrap; }
   .tide-item {
-    background: rgba(0,229,204,0.05);
-    border: 1px solid rgba(0,229,204,0.2);
-    border-radius: 3px;
-    padding: 10px 15px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-    min-width: 140px;
+    background:rgba(0,229,204,.05); border:1px solid rgba(0,229,204,.2);
+    border-radius:3px; padding:10px 15px;
+    display:flex; align-items:center; gap:12px; flex:1; min-width:130px;
   }
+  .tide-type { font-size:1.3rem; }
+  .t-label { font-size:.58rem; letter-spacing:.2em; color:rgba(0,229,204,.55); text-transform:uppercase; }
+  .t-time  { font-family:'Orbitron',monospace; font-size:.9rem; color:#fff; font-weight:700; }
+  .t-h     { font-size:.72rem; color:var(--teal); margin-top:2px; }
 
-  .tide-type {
-    font-size: 1.4rem;
-  }
-
-  .tide-info .t-time {
-    font-family: 'Orbitron', monospace;
-    font-size: 0.9rem;
-    color: #fff;
-    font-weight: 700;
-  }
-
-  .tide-info .t-height {
-    font-size: 0.75rem;
-    color: var(--teal);
-    margin-top: 2px;
-  }
-
-  .tide-info .t-label {
-    font-size: 0.6rem;
-    letter-spacing: 0.2em;
-    color: rgba(0,229,204,0.6);
-    text-transform: uppercase;
-  }
-
-  /* COEF BADGE */
   .coef-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255,107,53,0.1);
-    border: 1px solid rgba(255,107,53,0.3);
-    border-radius: 20px;
-    padding: 6px 16px;
-    font-family: 'Orbitron', monospace;
-    font-size: 0.8rem;
-    color: var(--warn);
-    margin-top: 12px;
+    display:inline-flex; align-items:center; gap:8px;
+    border-radius:20px; padding:6px 16px;
+    font-family:'Orbitron',monospace; font-size:.78rem; margin-top:12px; letter-spacing:.1em;
   }
 
-  /* SNOW LEVEL */
-  .snow-bar {
-    background: rgba(0,20,40,0.7);
-    border: 1px solid rgba(150,200,255,0.15);
-    border-radius: 4px;
-    padding: 20px 25px;
-    margin: 8px 0;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    backdrop-filter: blur(5px);
-  }
-
-  .snow-icon { font-size: 2rem; }
-
-  .snow-info { flex: 1; }
-
-  .snow-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.35em;
-    color: rgba(150,200,255,0.6);
-    text-transform: uppercase;
-  }
-
-  .snow-value {
-    font-family: 'Orbitron', monospace;
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #e0f0ff;
-    margin-top: 2px;
-  }
-
-  .snow-track {
-    flex: 2;
-    height: 6px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 3px;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .snow-fill {
-    height: 100%;
-    border-radius: 3px;
-    background: linear-gradient(90deg, var(--cyan), #a0d0ff);
-    transition: width 1.5s ease;
-    box-shadow: 0 0 8px rgba(0,245,255,0.4);
-  }
-
-  /* LOADING */
+  /* ── LOADING / ERROR ── */
   .loading {
-    text-align: center;
-    padding: 60px 0;
-    color: var(--cyan);
-    font-family: 'Orbitron', monospace;
-    font-size: 0.9rem;
-    letter-spacing: 0.3em;
+    text-align:center; padding:70px 0;
+    color:var(--cyan); font-family:'Orbitron',monospace;
+    font-size:.85rem; letter-spacing:.3em;
   }
-
-  .loading::after {
-    content: '';
-    display: block;
-    width: 40px;
-    height: 40px;
-    border: 2px solid rgba(0,245,255,0.2);
-    border-top-color: var(--cyan);
-    border-radius: 50%;
-    margin: 20px auto 0;
-    animation: spin 1s linear infinite;
+  .spinner {
+    display:block; width:42px; height:42px;
+    border:2px solid rgba(0,245,255,.15); border-top-color:var(--cyan);
+    border-radius:50%; margin:20px auto 0; animation:spin .9s linear infinite;
   }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* UPDATE INFO */
-  .update-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-top: 1px solid rgba(0,245,255,0.1);
-    margin-top: 20px;
-    font-size: 0.7rem;
-    color: rgba(0,245,255,0.4);
-    letter-spacing: 0.15em;
-  }
-
-  .live-dot {
-    display: inline-block;
-    width: 6px;
-    height: 6px;
-    background: #00ff88;
-    border-radius: 50%;
-    margin-right: 6px;
-    animation: pulse 2s ease-in-out infinite;
-    box-shadow: 0 0 6px #00ff88;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.8); }
-  }
-
-  /* FOOTER */
-  footer {
-    text-align: center;
-    padding: 30px 0 20px;
-    position: relative;
-  }
-
-  footer::before {
-    content: '';
-    display: block;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(0,245,255,0.2), transparent);
-    margin-bottom: 20px;
-  }
-
-  .footer-text {
-    font-family: 'Orbitron', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.4em;
-    color: rgba(0,245,255,0.4);
-    text-transform: uppercase;
-  }
+  @keyframes spin { to{transform:rotate(360deg)} }
 
   .error-msg {
-    background: rgba(255,60,60,0.1);
-    border: 1px solid rgba(255,60,60,0.3);
-    color: #ff8888;
-    padding: 12px 20px;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    margin: 10px 0;
+    background:rgba(255,60,60,.08); border:1px solid rgba(255,60,60,.25);
+    color:#ff9999; padding:14px 20px; border-radius:4px; font-size:.85rem; margin:10px 0; line-height:1.7;
+  }
+  .warn-msg {
+    background:rgba(255,170,0,.08); border:1px solid rgba(255,170,0,.25);
+    color:#ffcc66; padding:12px 18px; border-radius:4px; font-size:.8rem; margin:10px 0; line-height:1.6;
   }
 
-  /* Scanning line effect */
-  @keyframes scanDown {
-    0% { top: -2px; }
-    100% { top: 100%; }
+  /* ── FOOTER ── */
+  footer { text-align:center; padding:35px 0 22px; }
+  footer::before { content:''; display:block; height:1px; background:linear-gradient(90deg,transparent,rgba(0,245,255,.2),transparent); margin-bottom:22px; }
+  .footer-text { font-family:'Orbitron',monospace; font-size:.72rem; letter-spacing:.42em; color:rgba(0,245,255,.35); text-transform:uppercase; }
+
+  .source-badge {
+    display:inline-block; background:rgba(0,245,255,.06);
+    border:1px solid rgba(0,245,255,.18); border-radius:20px;
+    padding:4px 14px; font-size:.65rem; color:rgba(0,245,255,.5);
+    letter-spacing:.15em; margin-top:6px;
   }
 </style>
 </head>
@@ -595,16 +294,22 @@
 <div class="container">
 
   <header>
-    <div class="header-line"></div>
-    <div class="title-wrap">
-      <h1>EL TIEMPO EN LLANES</h1>
-      <div class="subtitle">Estación Meteorológica · Costa Cantábrica · Asturias</div>
-      <div class="coords">43.4206°N · 4.7549°W · ALT: 12m</div>
-    </div>
+    <div class="hline hline-top"></div>
+    <h1>EL TIEMPO EN LLANES</h1>
+    <div class="subtitle">Estación Meteorológica · Costa Cantábrica · Asturias</div>
+    <div class="coords">43.4206°N · 4.7549°O · ALT: 12 m</div>
+    <div><span class="source-badge">⚡ FUENTE: AEMET OpenData + Open-Meteo (fallback)</span></div>
+    <div class="hline hline-bot"></div>
   </header>
 
+  <!-- API KEY integrada — panel oculto -->
+  <div style="display:none" id="apikeyPanel">
+    <input id="keyInput" type="hidden" value="" />
+    <div id="keyStatus"></div>
+  </div>
+
   <div id="main-content">
-    <div class="loading">CARGANDO DATOS METEOROLÓGICOS</div>
+    <div class="loading">INICIANDO SISTEMA<span class="spinner"></span></div>
   </div>
 
   <footer>
@@ -612,312 +317,543 @@
   </footer>
 
 </div>
-
 <script>
-// ============================================================
-// CONFIGURACIÓN: Llanes, Asturias
-// ============================================================
-const LAT = 43.4206;
-const LON = -4.7549;
+// ════════════════════════════════════════════════════════════
+//  CONFIGURACIÓN
+// ════════════════════════════════════════════════════════════
+const LAT = 43.4206, LON = -4.7549;
+const MUNICIPIO = '33036'; // código AEMET para Llanes
 
-const DAYS = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+// ── COEFICIENTES REALES de los PDFs (Mareas de Llanes) ──────
+// Formato: 'YYYY-MM-DD': { coef, mareas:[{hora,altura,tipo}…] }
+const TIDES_DB = {
+  // ── MARZO 2026 ──
+  '2026-03-01':{ coef:85, mareas:[{h:'02:53',m:1.5,t:'P'},{h:'09:07',m:-1.6,t:'B'},{h:'15:25',m:1.4,t:'P'},{h:'21:19',m:-1.5,t:'B'}] },
+  '2026-03-02':{ coef:94, mareas:[{h:'03:40',m:1.8,t:'P'},{h:'09:52',m:-1.8,t:'B'},{h:'16:07',m:1.6,t:'P'},{h:'22:02',m:-1.7,t:'B'}] },
+  '2026-03-03':{ coef:98, mareas:[{h:'04:22',m:1.9,t:'P'},{h:'10:31',m:-1.9,t:'B'},{h:'16:45',m:1.7,t:'P'},{h:'22:41',m:-1.8,t:'B'}] },
+  '2026-03-04':{ coef:98, mareas:[{h:'05:00',m:2.0,t:'P'},{h:'11:07',m:-1.9,t:'B'},{h:'17:20',m:1.7,t:'P'},{h:'23:17',m:-1.9,t:'B'}] },
+  '2026-03-05':{ coef:93, mareas:[{h:'05:34',m:2.0,t:'P'},{h:'11:41',m:-1.9,t:'B'},{h:'17:52',m:1.7,t:'P'},{h:'23:51',m:-1.8,t:'B'}] },
+  '2026-03-06':{ coef:85, mareas:[{h:'06:07',m:1.8,t:'P'},{h:'12:13',m:-1.7,t:'B'},{h:'18:23',m:1.6,t:'P'}] },
+  '2026-03-07':{ coef:74, mareas:[{h:'00:25',m:-1.7,t:'B'},{h:'06:39',m:1.6,t:'P'},{h:'12:44',m:-1.6,t:'B'},{h:'18:53',m:1.4,t:'P'}] },
+  '2026-03-08':{ coef:61, mareas:[{h:'00:58',m:-1.5,t:'B'},{h:'07:10',m:1.4,t:'P'},{h:'13:16',m:-1.3,t:'B'},{h:'19:25',m:1.3,t:'P'}] },
+  '2026-03-09':{ coef:48, mareas:[{h:'01:34',m:-1.3,t:'B'},{h:'07:42',m:1.1,t:'P'},{h:'13:51',m:-1.1,t:'B'},{h:'20:00',m:1.1,t:'P'}] },
+  '2026-03-10':{ coef:35, mareas:[{h:'02:14',m:-1.0,t:'B'},{h:'08:21',m:0.9,t:'P'},{h:'14:32',m:-0.9,t:'B'},{h:'20:44',m:0.8,t:'P'}] },
+  '2026-03-11':{ coef:26, mareas:[{h:'03:05',m:-0.8,t:'B'},{h:'09:13',m:0.6,t:'P'},{h:'15:28',m:-0.6,t:'B'},{h:'21:49',m:0.7,t:'P'}] },
+  '2026-03-12':{ coef:25, mareas:[{h:'04:21',m:-0.6,t:'B'},{h:'10:40',m:0.4,t:'P'},{h:'16:53',m:-0.5,t:'B'},{h:'23:30',m:0.6,t:'P'}] },
+  '2026-03-13':{ coef:34, mareas:[{h:'06:00',m:-0.6,t:'B'},{h:'12:33',m:0.5,t:'P'},{h:'18:29',m:-0.5,t:'B'}] },
+  '2026-03-14':{ coef:48, mareas:[{h:'01:04',m:0.7,t:'P'},{h:'07:22',m:-0.7,t:'B'},{h:'13:47',m:0.7,t:'P'},{h:'19:39',m:-0.7,t:'B'}] },
+  '2026-03-15':{ coef:63, mareas:[{h:'02:03',m:1.0,t:'P'},{h:'08:15',m:-1.0,t:'B'},{h:'14:33',m:0.9,t:'P'},{h:'20:26',m:-1.0,t:'B'}] },
+  '2026-03-16':{ coef:77, mareas:[{h:'02:45',m:1.2,t:'P'},{h:'08:55',m:-1.3,t:'B'},{h:'15:10',m:1.2,t:'P'},{h:'21:05',m:-1.3,t:'B'}] },
+  '2026-03-17':{ coef:90, mareas:[{h:'03:21',m:1.5,t:'P'},{h:'09:30',m:-1.5,t:'B'},{h:'15:43',m:1.4,t:'P'},{h:'21:40',m:-1.5,t:'B'}] },
+  '2026-03-18':{ coef:100,mareas:[{h:'03:56',m:1.7,t:'P'},{h:'10:04',m:-1.8,t:'B'},{h:'16:16',m:1.6,t:'P'},{h:'22:15',m:-1.8,t:'B'}] },
+  '2026-03-19':{ coef:105,mareas:[{h:'04:30',m:1.9,t:'P'},{h:'10:39',m:-1.9,t:'B'},{h:'16:50',m:1.8,t:'P'},{h:'22:50',m:-1.9,t:'B'}] },
+  '2026-03-20':{ coef:105,mareas:[{h:'05:05',m:2.0,t:'P'},{h:'11:14',m:-2.0,t:'B'},{h:'17:25',m:1.9,t:'P'},{h:'23:28',m:-2.0,t:'B'}] },
+  '2026-03-21':{ coef:98, mareas:[{h:'05:43',m:2.1,t:'P'},{h:'11:52',m:-2.0,t:'B'},{h:'18:02',m:1.9,t:'P'}] },
+  '2026-03-22':{ coef:87, mareas:[{h:'00:08',m:-2.0,t:'B'},{h:'06:22',m:1.9,t:'P'},{h:'12:31',m:-1.9,t:'B'},{h:'18:42',m:1.8,t:'P'}] },
+  '2026-03-23':{ coef:71, mareas:[{h:'00:51',m:-1.8,t:'B'},{h:'07:06',m:1.7,t:'P'},{h:'13:14',m:-1.6,t:'B'},{h:'19:27',m:1.6,t:'P'}] },
+  '2026-03-24':{ coef:55, mareas:[{h:'01:39',m:-1.6,t:'B'},{h:'07:55',m:1.4,t:'P'},{h:'14:03',m:-1.3,t:'B'},{h:'20:19',m:1.3,t:'P'}] },
+  '2026-03-25':{ coef:42, mareas:[{h:'02:37',m:-1.3,t:'B'},{h:'08:55',m:1.1,t:'P'},{h:'15:03',m:-1.0,t:'B'},{h:'21:26',m:1.1,t:'P'}] },
+  '2026-03-26':{ coef:39, mareas:[{h:'03:51',m:-1.0,t:'B'},{h:'10:19',m:0.8,t:'P'},{h:'16:23',m:-0.8,t:'B'},{h:'22:57',m:1.0,t:'P'}] },
+  '2026-03-27':{ coef:48, mareas:[{h:'05:25',m:-0.9,t:'B'},{h:'12:01',m:0.7,t:'P'},{h:'17:57',m:-0.8,t:'B'}] },
+  '2026-03-28':{ coef:61, mareas:[{h:'00:32',m:1.0,t:'P'},{h:'06:55',m:-1.1,t:'B'},{h:'13:24',m:0.9,t:'P'},{h:'19:17',m:-1.0,t:'B'}] },
+  '2026-03-29':{ coef:74, mareas:[{h:'00:44',m:1.3,t:'P'},{h:'09:01',m:-1.3,t:'B'},{h:'15:22',m:1.1,t:'P'},{h:'21:16',m:-1.2,t:'B'}] },
+  '2026-03-30':{ coef:84, mareas:[{h:'03:38',m:1.5,t:'P'},{h:'09:50',m:-1.5,t:'B'},{h:'16:08',m:1.4,t:'P'},{h:'22:02',m:-1.4,t:'B'}] },
+  '2026-03-31':{ coef:91, mareas:[{h:'04:22',m:1.7,t:'P'},{h:'10:31',m:-1.7,t:'B'},{h:'16:46',m:1.5,t:'P'},{h:'22:42',m:-1.6,t:'B'}] },
+  // ── ABRIL 2026 ──
+  '2026-04-01':{ coef:93, mareas:[{h:'05:00',m:1.8,t:'P'},{h:'11:06',m:-1.8,t:'B'},{h:'17:20',m:1.6,t:'P'},{h:'23:18',m:-1.7,t:'B'}] },
+  '2026-04-02':{ coef:92, mareas:[{h:'05:35',m:1.8,t:'P'},{h:'11:39',m:-1.8,t:'B'},{h:'17:52',m:1.7,t:'P'},{h:'23:51',m:-1.8,t:'B'}] },
+  '2026-04-03':{ coef:87, mareas:[{h:'06:07',m:1.8,t:'P'},{h:'12:10',m:-1.7,t:'B'},{h:'18:22',m:1.7,t:'P'}] },
+  '2026-04-04':{ coef:80, mareas:[{h:'00:24',m:-1.7,t:'B'},{h:'06:37',m:1.7,t:'P'},{h:'12:40',m:-1.6,t:'B'},{h:'18:51',m:1.6,t:'P'}] },
+  '2026-04-05':{ coef:71, mareas:[{h:'00:56',m:-1.6,t:'B'},{h:'07:07',m:1.5,t:'P'},{h:'13:10',m:-1.5,t:'B'},{h:'19:20',m:1.5,t:'P'}] },
+  '2026-04-06':{ coef:60, mareas:[{h:'01:29',m:-1.5,t:'B'},{h:'07:37',m:1.3,t:'P'},{h:'13:41',m:-1.3,t:'B'},{h:'19:51',m:1.3,t:'P'}] },
+  '2026-04-07':{ coef:48, mareas:[{h:'02:04',m:-1.3,t:'B'},{h:'08:10',m:1.1,t:'P'},{h:'14:15',m:-1.1,t:'B'},{h:'20:26',m:1.1,t:'P'}] },
+  '2026-04-08':{ coef:37, mareas:[{h:'02:44',m:-1.0,t:'B'},{h:'08:49',m:0.9,t:'P'},{h:'14:56',m:-0.9,t:'B'},{h:'21:09',m:0.9,t:'P'}] },
+  '2026-04-09':{ coef:29, mareas:[{h:'03:34',m:-0.8,t:'B'},{h:'09:40',m:0.6,t:'P'},{h:'15:49',m:-0.7,t:'B'},{h:'22:09',m:0.7,t:'P'}] },
+  '2026-04-10':{ coef:28, mareas:[{h:'04:43',m:-0.7,t:'B'},{h:'10:59',m:0.5,t:'P'},{h:'17:06',m:-0.5,t:'B'},{h:'23:36',m:0.6,t:'P'}] },
+  '2026-04-11':{ coef:37, mareas:[{h:'06:12',m:-0.6,t:'B'},{h:'12:40',m:0.5,t:'P'},{h:'18:37',m:-0.6,t:'B'}] },
+  '2026-04-12':{ coef:50, mareas:[{h:'01:08',m:0.7,t:'P'},{h:'07:32',m:-0.8,t:'B'},{h:'13:57',m:0.7,t:'P'},{h:'19:50',m:-0.7,t:'B'}] },
+  '2026-04-13':{ coef:65, mareas:[{h:'02:13',m:0.9,t:'P'},{h:'08:29',m:-1.0,t:'B'},{h:'14:48',m:0.9,t:'P'},{h:'20:42',m:-1.0,t:'B'}] },
+  '2026-04-14':{ coef:80, mareas:[{h:'03:01',m:1.2,t:'P'},{h:'09:13',m:-1.3,t:'B'},{h:'15:29',m:1.2,t:'P'},{h:'21:25',m:-1.3,t:'B'}] },
+  '2026-04-15':{ coef:92, mareas:[{h:'03:42',m:1.5,t:'P'},{h:'09:52',m:-1.6,t:'B'},{h:'16:06',m:1.5,t:'P'},{h:'22:05',m:-1.6,t:'B'}] },
+  '2026-04-16':{ coef:101,mareas:[{h:'04:21',m:1.7,t:'P'},{h:'10:30',m:-1.8,t:'B'},{h:'16:43',m:1.7,t:'P'},{h:'22:44',m:-1.8,t:'B'}] },
+  '2026-04-17':{ coef:105,mareas:[{h:'05:00',m:1.9,t:'P'},{h:'11:08',m:-2.0,t:'B'},{h:'17:21',m:1.9,t:'P'},{h:'23:25',m:-2.0,t:'B'}] },
+  '2026-04-18':{ coef:103,mareas:[{h:'05:40',m:2.0,t:'P'},{h:'11:47',m:-2.0,t:'B'},{h:'18:00',m:2.0,t:'P'}] },
+  '2026-04-19':{ coef:95, mareas:[{h:'00:07',m:-2.1,t:'B'},{h:'06:22',m:2.0,t:'P'},{h:'12:29',m:-2.0,t:'B'},{h:'18:42',m:2.0,t:'P'}] },
+  '2026-04-20':{ coef:83, mareas:[{h:'00:51',m:-2.0,t:'B'},{h:'07:07',m:1.9,t:'P'},{h:'13:12',m:-1.8,t:'B'},{h:'19:27',m:1.9,t:'P'}] },
+  '2026-04-21':{ coef:68, mareas:[{h:'01:39',m:-1.8,t:'B'},{h:'07:55',m:1.6,t:'P'},{h:'13:59',m:-1.6,t:'B'},{h:'20:16',m:1.7,t:'P'}] },
+  '2026-04-22':{ coef:54, mareas:[{h:'02:32',m:-1.6,t:'B'},{h:'08:49',m:1.3,t:'P'},{h:'14:52',m:-1.3,t:'B'},{h:'21:13',m:1.4,t:'P'}] },
+  '2026-04-23':{ coef:46, mareas:[{h:'03:34',m:-1.3,t:'B'},{h:'09:55',m:1.0,t:'P'},{h:'15:56',m:-1.0,t:'B'},{h:'22:23',m:1.2,t:'P'}] },
+  '2026-04-24':{ coef:45, mareas:[{h:'04:50',m:-1.1,t:'B'},{h:'11:18',m:0.8,t:'P'},{h:'17:14',m:-0.9,t:'B'},{h:'23:48',m:1.1,t:'P'}] },
+  '2026-04-25':{ coef:52, mareas:[{h:'06:16',m:-1.1,t:'B'},{h:'12:47',m:0.8,t:'P'},{h:'18:40',m:-0.8,t:'B'}] },
+  '2026-04-26':{ coef:61, mareas:[{h:'01:11',m:1.1,t:'P'},{h:'07:34',m:-1.1,t:'B'},{h:'14:01',m:0.9,t:'P'},{h:'19:53',m:-1.0,t:'B'}] },
+  '2026-04-27':{ coef:70, mareas:[{h:'02:19',m:1.2,t:'P'},{h:'08:35',m:-1.3,t:'B'},{h:'14:56',m:1.1,t:'P'},{h:'20:50',m:-1.2,t:'B'}] },
+  '2026-04-28':{ coef:77, mareas:[{h:'03:11',m:1.4,t:'P'},{h:'09:22',m:-1.4,t:'B'},{h:'15:40',m:1.3,t:'P'},{h:'21:36',m:-1.3,t:'B'}] },
+  '2026-04-29':{ coef:81, mareas:[{h:'03:55',m:1.5,t:'P'},{h:'10:01',m:-1.5,t:'B'},{h:'16:18',m:1.4,t:'P'},{h:'22:16',m:-1.5,t:'B'}] },
+  '2026-04-30':{ coef:83, mareas:[{h:'04:33',m:1.6,t:'P'},{h:'10:36',m:-1.6,t:'B'},{h:'16:52',m:1.5,t:'P'},{h:'22:52',m:-1.6,t:'B'}] },
+};
+
+// ── Helpers ────────────────────────────────────────────────
+const DAYS   = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
 const MONTHS = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
 
-function weatherIcon(code, isDay = 1) {
-  const icons = {
-    0: isDay ? '☀️' : '🌙',
-    1: isDay ? '🌤️' : '🌤️',
-    2: '⛅',
-    3: '☁️',
-    45: '🌫️', 48: '🌫️',
-    51: '🌦️', 53: '🌦️', 55: '🌧️',
-    61: '🌧️', 63: '🌧️', 65: '🌧️',
-    71: '🌨️', 73: '🌨️', 75: '❄️',
-    80: '🌦️', 81: '🌧️', 82: '⛈️',
-    95: '⛈️', 96: '⛈️', 99: '⛈️'
-  };
-  return icons[code] || '🌡️';
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
-function weatherDesc(code) {
-  const d = {
-    0: 'Despejado', 1: 'Mayormente despejado', 2: 'Parcialmente nublado',
-    3: 'Nublado', 45: 'Niebla', 48: 'Niebla con escarcha',
-    51: 'Llovizna ligera', 53: 'Llovizna moderada', 55: 'Llovizna densa',
-    61: 'Lluvia ligera', 63: 'Lluvia moderada', 65: 'Lluvia fuerte',
-    71: 'Nieve ligera', 73: 'Nieve moderada', 75: 'Nieve intensa',
-    80: 'Chubascos débiles', 81: 'Chubascos moderados', 82: 'Chubascos violentos',
-    95: 'Tormenta', 96: 'Tormenta con granizo', 99: 'Tormenta con granizo fuerte'
-  };
-  return d[code] || 'Variable';
+function dateKey(isoStr) { return isoStr.slice(0,10); }
+
+function getTideData(dayKey) {
+  return TIDES_DB[dayKey] || null;
 }
 
-function seaState(waveHeight) {
-  if (waveHeight < 0.1) return { state: 'Calma', beaufort: 0 };
-  if (waveHeight < 0.5) return { state: 'Marejadilla', beaufort: 1 };
-  if (waveHeight < 1.25) return { state: 'Marejada', beaufort: 3 };
-  if (waveHeight < 2.5) return { state: 'Marejada fuerte', beaufort: 5 };
-  if (waveHeight < 4.0) return { state: 'Mare de fondo', beaufort: 7 };
-  if (waveHeight < 6.0) return { state: 'Gruesa', beaufort: 8 };
-  return { state: 'Muy gruesa', beaufort: 9 };
-}
-
-// Tidal coefficient approximation (based on Moon phase)
-function getTidalCoef() {
-  // Simple lunar-based calculation
-  const known = new Date('2024-01-01').getTime();
-  const lunarCycle = 29.53058867 * 24 * 3600 * 1000;
-  const now = Date.now();
-  const phase = ((now - known) % lunarCycle) / lunarCycle;
-  // Coefficient varies 20–120, peaks at new/full moon
-  const angle = phase * 2 * Math.PI;
-  const coef = Math.round(70 + 50 * Math.abs(Math.cos(angle)));
+// Fallback: generar coeficiente por fase lunar si no hay datos en la BD
+function lunarCoef() {
+  const ref = new Date('2026-03-01').getTime();
+  const cycle = 29.53058867 * 86400000;
+  const phase = ((Date.now() - ref) % cycle) / cycle;
+  const coef = Math.round(70 + 50 * Math.abs(Math.cos(phase * 2 * Math.PI)));
   return Math.min(120, Math.max(20, coef));
 }
 
-function getTideType(coef) {
-  if (coef >= 95) return { type: 'VIVA', icon: '🌊', color: '#ff6b35' };
-  if (coef >= 70) return { type: 'MEDIA', icon: '🌊', color: '#00f5ff' };
-  return { type: 'MUERTA', icon: '〰️', color: '#00e5cc' };
+function coefInfo(c) {
+  if (c >= 95) return { tipo:'MUY ALTA', color:'#ff6b35' };
+  if (c >= 80) return { tipo:'ALTA',     color:'#ffd700' };
+  if (c >= 60) return { tipo:'MEDIA',    color:'#00f5ff' };
+  if (c >= 40) return { tipo:'BAJA',     color:'#00e5cc' };
+  return             { tipo:'MUY BAJA', color:'#88aacc' };
 }
 
-// Simulated tide times based on current time (semi-diurnal ~6.2h cycle)
-function getTideTimes() {
-  const now = new Date();
-  const baseHour = (now.getHours() + (now.getMinutes() / 60));
-  const tideInterval = 6.21; // hours between high/low
-  const tides = [];
-  const labels = ['Pleamar', 'Bajamar', 'Pleamar', 'Bajamar'];
-  const icons = ['⬆️', '⬇️', '⬆️', '⬇️'];
-  for (let i = 0; i < 4; i++) {
-    let h = (baseHour + i * tideInterval) % 24;
-    const hh = Math.floor(h);
-    const mm = Math.floor((h % 1) * 60);
-    const isHigh = i % 2 === 0;
-    tides.push({
-      time: `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}`,
-      label: labels[i],
-      icon: icons[i],
-      height: isHigh ? (3.2 + Math.random() * 1.2).toFixed(2) : (0.4 + Math.random() * 0.6).toFixed(2)
-    });
-  }
-  return tides;
+function seaState(wh) {
+  if (wh < 0.1)  return {s:'Calma',          b:0};
+  if (wh < 0.5)  return {s:'Marejadilla',     b:1};
+  if (wh < 1.25) return {s:'Marejada',        b:3};
+  if (wh < 2.5)  return {s:'Marejada fuerte', b:5};
+  if (wh < 4.0)  return {s:'Mar de fondo',    b:7};
+  return               {s:'Mar gruesa',       b:8};
 }
 
-async function fetchWeather() {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=temperature_2m,snowfall,snow_depth&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,winddirection_10m_dominant,snowfall_sum&current_weather=true&wind_speed_unit=kmh&timezone=Europe%2FMadrid&forecast_days=7`;
-  const marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&hourly=wave_height,wave_direction,wave_period&daily=wave_height_max&timezone=Europe%2FMadrid&forecast_days=7`;
-
-  const [wRes, mRes] = await Promise.all([
-    fetch(url),
-    fetch(marineUrl)
-  ]);
-
-  if (!wRes.ok) throw new Error('Error al obtener datos meteorológicos');
-
-  const wData = await wRes.json();
-  const mData = mRes.ok ? await mRes.json() : null;
-
-  return { weather: wData, marine: mData };
+function windDir(deg) {
+  return ['N','NE','E','SE','S','SO','O','NO'][Math.round((deg||0)/45)%8];
 }
 
-function snowLevelFromTemp(tempMax, snowfall) {
-  // Estimate snow level based on temperature lapse rate
-  // Approximately: 0°C isotherm is at altitude where temp = 0
-  // Lapse rate ~6.5°C per 1000m
-  if (tempMax <= 0) return 0;
-  const levelM = Math.round((tempMax / 6.5) * 1000);
-  return Math.min(levelM, 2600); // Picos de Europa max ~2600m
+function snowLevel(t) {
+  if (t<=0) return 0;
+  return Math.min(Math.round((t/6.5)*1000), 2600);
 }
 
-function windDirIcon(deg) {
-  const dirs = ['N','NE','E','SE','S','SO','O','NO'];
-  const idx = Math.round(deg / 45) % 8;
-  return dirs[idx];
+// ── AEMET icons → emoji ────────────────────────────────────
+function aemetIcon(sky) {
+  // sky: 11=despejado, 12=poco nublado, 13=intervalos nubosos, 14=nublado, 15=muy nublado, 16=cubierto
+  // 23=intervalos nubosos con lluvia escasa, 24=nublado con lluvia, 26=lluvia, 71=nieve...
+  const n = parseInt(sky);
+  if (n===11) return '☀️';
+  if (n===12) return '🌤️';
+  if (n===13||n===14) return '⛅';
+  if (n===15||n===16) return '☁️';
+  if (n===17||n===33) return '🌫️';
+  if ([23,24,43,44,45,46].includes(n)) return '🌦️';
+  if ([26,36,27,37,61,62,63,64].includes(n)) return '🌧️';
+  if ([51,52,53,54,71,72,73,74,75,76].includes(n)) return '🌨️';
+  if ([81,82,83,84].includes(n)) return '⛈️';
+  return '🌡️';
 }
 
-function renderWeather(data) {
-  const { weather, marine } = data;
-  const cw = weather.current_weather;
-  const daily = weather.daily;
-  const now = new Date();
+function aemetDesc(sky) {
+  const m = {
+    11:'Despejado',12:'Poco nublado',13:'Intervalos nubosos',
+    14:'Nublado',15:'Muy nublado',16:'Cubierto',
+    17:'Niebla',23:'Chubascos débiles',24:'Chubascos',26:'Lluvia',
+    27:'Lluvia fuerte',33:'Bruma',36:'Lluvia y nieve',
+    51:'Nieve débil',52:'Nieve moderada',71:'Chubascos de nieve',
+    81:'Tormenta',82:'Tormenta fuerte'
+  };
+  return m[parseInt(sky)] || 'Variable';
+}
 
-  const coef = getTidalCoef();
-  const tideInfo = getTideType(coef);
-  const tides = getTideTimes();
+// ── API Key AEMET (fija) ───────────────────────────────────
+const AEMET_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0dWVyb2p1bmNvamF2aWVyQGdtYWlsLmNvbSIsImp0aSI6ImE3YWM3MjE4LTYzZjYtNDJlZS05MDY1LTQ0ODhhMzY4MTNjYiIsImlzcyI6IkFFTUVUIiwiaWF0IjoxNzczMzE2MTAwLCJ1c2VySWQiOiJhN2FjNzIxOC02M2Y2LTQyZWUtOTA2NS00NDg4YTM2ODEzY2IiLCJyb2xlIjoiIn0.TwFrksLEvG7-0nFQlpv2zH3XskKy5AxJDEEaqjKHQp0';
 
-  // Current marine data
-  let currentWave = 1.2;
-  let currentWaveDir = 'NO';
-  if (marine && marine.hourly) {
-    const hIdx = marine.hourly.time.findIndex(t => t.startsWith(now.toISOString().slice(0,13)));
-    if (hIdx >= 0 && marine.hourly.wave_height[hIdx] != null) {
-      currentWave = marine.hourly.wave_height[hIdx];
-      currentWaveDir = windDirIcon(marine.hourly.wave_direction?.[hIdx] || 315);
+function getKey()  { return AEMET_KEY; }
+function setKey(k) { /* key fija, no se necesita guardar */ }
+
+function saveKey() {
+  setStatus('✓ Clave AEMET ya configurada','ok');
+  init();
+}
+
+function setStatus(msg, cls) {
+  const el = document.getElementById('keyStatus');
+  el.textContent = msg; el.className = 'apikey-status ' + (cls||'');
+}
+
+function loadWithoutAemet() {
+  setStatus('Usando Open-Meteo como fuente (sin clave AEMET)','ok');
+  renderWithFallback();
+}
+
+// ── AEMET fetch ────────────────────────────────────────────
+async function fetchAEMET(apiKey) {
+  // Paso 1: obtener URL de datos
+  const proxy = 'https://api.allorigins.win/get?url=';
+  const ep1 = `https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/${MUNICIPIO}?api_key=${apiKey}`;
+  const r1 = await fetch(proxy + encodeURIComponent(ep1));
+  const j1 = await r1.json();
+  const body1 = JSON.parse(j1.contents);
+  if (body1.estado !== 200) throw new Error(body1.descripcion || 'Error AEMET paso 1');
+
+  // Paso 2: obtener datos reales
+  const r2 = await fetch(proxy + encodeURIComponent(body1.datos));
+  const j2 = await r2.json();
+  return JSON.parse(j2.contents);
+}
+
+// ── Open-Meteo fetch (fallback) ────────────────────────────
+async function fetchOpenMeteo() {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
+    `&current_weather=true` +
+    `&hourly=temperature_2m,relativehumidity_2m,apparent_temperature,precipitation,snow_depth,pressure_msl,visibility` +
+    `&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,winddirection_10m_dominant,snowfall_sum` +
+    `&wind_speed_unit=kmh&timezone=Europe%2FMadrid&forecast_days=7`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+async function fetchMarine() {
+  const url = `https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}` +
+    `&hourly=wave_height,wave_direction&daily=wave_height_max&timezone=Europe%2FMadrid&forecast_days=7`;
+  const res = await fetch(url);
+  return res.ok ? res.json() : null;
+}
+
+// ── RENDER con datos AEMET ─────────────────────────────────
+async function renderWithAEMET(aeData, marineData) {
+  const pred = aeData[0].prediccion.dia;
+  const now  = new Date();
+  const todayStr = todayKey();
+
+  // Día 0 = hoy
+  const hoy = pred[0];
+  const hora = now.getHours();
+
+  // Temperatura actual: buscar el periodo más próximo
+  let tempActual = 15, condActual = '13', humActual = 70, vientoActual = 20, dirActual = 0, lluviaHoy = 0;
+  try {
+    // Temperatura por horas
+    const tHora = hoy.temperatura?.dato || hoy.temperatura?.datoHora;
+    if (tHora) {
+      const closest = tHora.reduce((a,b) => Math.abs(parseInt(b.hora||b.periodo)-hora) < Math.abs(parseInt(a.hora||a.periodo)-hora) ? b : a);
+      tempActual = parseFloat(closest.value);
+    }
+    // Estado del cielo
+    const cieloArr = hoy.estadoCielo?.dato || hoy.estadoCielo;
+    if (Array.isArray(cieloArr)) {
+      const cHora = cieloArr.reduce((a,b) => Math.abs(parseInt(b.periodo||0)-hora) < Math.abs(parseInt(a.periodo||0)-hora) ? b : a);
+      condActual = cHora.value || '13';
+    }
+    // Viento
+    const vArr = hoy.viento?.dato || hoy.viento;
+    if (Array.isArray(vArr)) {
+      const vHora = vArr.reduce((a,b) => Math.abs(parseInt(b.periodo||0)-hora) < Math.abs(parseInt(a.periodo||0)-hora) ? b : a);
+      vientoActual = parseFloat(vHora.velocidad || 0);
+      dirActual = vHora.direccion || 'N';
+    }
+    // Lluvia
+    const pArr = hoy.probPrecipitacion?.dato || [];
+    lluviaHoy = parseFloat(hoy.precipitacion?.value || 0);
+    // Humedad
+    const huArr = hoy.humedadRelativa?.dato || hoy.humedadRelativa;
+    if (Array.isArray(huArr)) {
+      const hHora = huArr.reduce((a,b) => Math.abs(parseInt(b.periodo||0)-hora) < Math.abs(parseInt(a.periodo||0)-hora) ? b : a);
+      humActual = parseInt(hHora.value || 70);
+    }
+  } catch(e) { console.warn('Parse AEMET parcial:', e); }
+
+  const snowLvl = snowLevel(tempActual);
+  const snowPct = Math.min(100, Math.max(1, (snowLvl/2600)*100));
+
+  // Marea hoy
+  const tideToday = getTideData(todayStr);
+  const coef = tideToday ? tideToday.coef : lunarCoef();
+  const cInfo = coefInfo(coef);
+
+  // Estado del mar
+  let waveH = 1.0, waveDir = 'NO';
+  if (marineData?.hourly) {
+    const hIdx = marineData.hourly.time.findIndex(t => t.startsWith(now.toISOString().slice(0,13)));
+    if (hIdx>=0 && marineData.hourly.wave_height[hIdx]!=null) {
+      waveH    = marineData.hourly.wave_height[hIdx];
+      waveDir  = windDir(marineData.hourly.wave_direction?.[hIdx]||315);
     }
   }
-  const sea = seaState(currentWave);
-
-  // Snow level current
-  const snowLevel = snowLevelFromTemp(cw.temperature, 0);
-  const snowPct = Math.min(100, (snowLevel / 2600) * 100);
+  const sea = seaState(waveH);
+  const time_s = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
   let html = `
-    <!-- CURRENT WEATHER -->
     <div class="current-section">
       <div class="current-grid">
-        <div class="current-temp-display">
-          <div class="temp-value">${Math.round(cw.temperature)}<span class="temp-unit">°C</span></div>
-          <div class="current-desc">${weatherIcon(cw.weathercode, cw.is_day)} ${weatherDesc(cw.weathercode)}</div>
+        <div class="temp-display">
+          <div class="temp-val">${Math.round(tempActual)}<span class="temp-unit">°C</span></div>
+          <div class="cur-desc">${aemetIcon(condActual)} ${aemetDesc(condActual)}</div>
         </div>
-        <div class="current-divider"></div>
-        <div class="current-stats">
-          <div class="stat-item">
-            <span class="stat-label">💨 Viento</span>
-            <span class="stat-value">${Math.round(cw.windspeed)}<span class="stat-unit">km/h</span></span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">🧭 Dirección</span>
-            <span class="stat-value">${windDirIcon(cw.winddirection)}</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">🌧️ Lluvia hoy</span>
-            <span class="stat-value">${daily.precipitation_sum[0].toFixed(1)}<span class="stat-unit">mm</span></span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">🌡️ Sensación</span>
-            <span class="stat-value">${Math.round(cw.temperature - cw.windspeed * 0.07)}<span class="stat-unit">°C</span></span>
-          </div>
+        <div class="cdivider"></div>
+        <div class="cur-stats">
+          <div class="stat-item"><span class="stat-label">💨 Viento</span><span class="stat-val">${Math.round(vientoActual)}<span class="stat-unit">km/h</span></span></div>
+          <div class="stat-item"><span class="stat-label">🧭 Dirección</span><span class="stat-val">${typeof dirActual==='string'?dirActual:windDir(dirActual)}</span></div>
+          <div class="stat-item"><span class="stat-label">💧 Humedad</span><span class="stat-val">${humActual}<span class="stat-unit">%</span></span></div>
+          <div class="stat-item"><span class="stat-label">🌧️ Lluvia hoy</span><span class="stat-val">${lluviaHoy.toFixed(1)}<span class="stat-unit">mm</span></span></div>
         </div>
       </div>
       <div class="update-bar">
-        <span><span class="live-dot"></span>EN VIVO · ACTUALIZACIÓN AUTOMÁTICA CADA 30 MIN</span>
-        <span>ULT. ACT: ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}</span>
+        <span><span class="live-dot"></span>EN VIVO · AEMET OFFICIAL · AUTO-ACT. 30 MIN</span>
+        <span>ÚLT. ACT: ${time_s}</span>
       </div>
     </div>
 
-    <!-- SNOW LEVEL -->
     <div class="section-title">❄️ Cota de nieve</div>
     <div class="snow-bar">
       <div class="snow-icon">🏔️</div>
       <div class="snow-info">
-        <div class="snow-label">Altitud estimada cota de nieve</div>
-        <div class="snow-value">${snowLevel > 0 ? snowLevel + ' m' : 'A nivel del mar'}</div>
+        <div class="snow-lbl">Altitud estimada cota de nieve</div>
+        <div class="snow-val">${snowLvl>0 ? snowLvl.toLocaleString('es')+' m' : 'A nivel del mar'}</div>
       </div>
-      <div class="snow-track">
-        <div class="snow-fill" id="snowFill" style="width: 0%"></div>
-      </div>
+      <div class="snow-track"><div class="snow-fill" id="snowFill"></div></div>
     </div>
 
-    <!-- 7-DAY FORECAST -->
-    <div class="section-title">📅 Previsión 7 días</div>
+    <div class="section-title">📅 Previsión 7 días · AEMET</div>
     <div class="forecast-grid">
   `;
 
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(daily.time[i] + 'T12:00:00');
-    const dayName = i === 0 ? 'HOY' : i === 1 ? 'MAÑANA' : DAYS[date.getDay()];
-    const dateStr = `${date.getDate()} ${MONTHS[date.getMonth()]}`;
-    const maxTemp = Math.round(daily.temperature_2m_max[i]);
-    const minTemp = Math.round(daily.temperature_2m_min[i]);
-    const rain = daily.precipitation_sum[i].toFixed(1);
-    const wind = Math.round(daily.windspeed_10m_max[i]);
-    const windDir = windDirIcon(daily.winddirection_10m_dominant[i]);
-    const icon = weatherIcon(daily.weathercode[i], 1);
-    const desc = weatherDesc(daily.weathercode[i]);
-    const snowLvl = snowLevelFromTemp(maxTemp, daily.snowfall_sum?.[i] || 0);
-
-    let waveMax = '—';
-    if (marine && marine.daily?.wave_height_max?.[i] != null) {
-      waveMax = marine.daily.wave_height_max[i].toFixed(1) + 'm';
-    }
-
+  for (let i=0; i<Math.min(7,pred.length); i++) {
+    const dObj   = pred[i];
+    const dDate  = new Date(dObj.fecha);
+    const dKey   = dObj.fecha.slice(0,10);
+    const dName  = i===0?'HOY':i===1?'MAÑANA':DAYS[dDate.getDay()];
+    const dStr   = `${dDate.getDate()} ${MONTHS[dDate.getMonth()]}`;
+    const tMax   = parseFloat(dObj.temperatura?.maxima ?? dObj.temperatura?.value ?? '--');
+    const tMin   = parseFloat(dObj.temperatura?.minima ?? '--');
+    // Viento max
+    const vArr2  = dObj.viento?.dato || dObj.viento || [];
+    const vMax   = Array.isArray(vArr2) ? Math.max(...vArr2.map(v=>parseFloat(v.velocidad||0)).filter(x=>!isNaN(x)), 0) : 0;
+    // Lluvia
+    const rain   = parseFloat(dObj.precipitacion?.value || 0);
+    // Cielo: tomar periodo 12-24
+    const skArr  = dObj.estadoCielo?.dato || dObj.estadoCielo || [];
+    const skTar  = Array.isArray(skArr) ? (skArr.find(s=>s.periodo==='12-24')||skArr.find(s=>s.periodo==='00-24')||skArr[0]||{value:'13'}) : {value:'13'};
+    const skCode = skTar.value || '13';
+    const tideD  = getTideData(dKey);
+    const coefD  = tideD ? tideD.coef : null;
+    const snowD  = snowLevel(!isNaN(tMax) ? tMax : 15);
     html += `
-      <div class="forecast-card ${i === 0 ? 'today' : ''}">
-        <div class="fc-day">${dayName}<br><small style="opacity:0.6;font-size:0.55rem">${dateStr}</small></div>
-        <div class="fc-icon">${icon}</div>
-        <div class="fc-temp-max">${maxTemp}°</div>
-        <div class="fc-temp-min">${minTemp}°</div>
+      <div class="fc-card ${i===0?'today':''}">
+        <div class="fc-day">${dName}<br><small style="opacity:.55;font-size:.54rem">${dStr}</small></div>
+        <div class="fc-icon">${aemetIcon(skCode)}</div>
+        <div class="fc-tmax">${!isNaN(tMax)?Math.round(tMax)+'°':'—'}</div>
+        <div class="fc-tmin">${!isNaN(tMin)?Math.round(tMin)+'°':'—'}</div>
         <div class="fc-detail">
-          <div>🌧️ <span>${rain}mm</span></div>
-          <div>💨 <span>${wind}km/h ${windDir}</span></div>
-          <div>❄️ <span>${snowLvl > 0 ? snowLvl + 'm' : '<100m'}</span></div>
-          <div>🌊 <span>${waveMax}</span></div>
+          <div>🌧️ <span>${rain.toFixed(1)}mm</span></div>
+          <div>💨 <span>${Math.round(vMax)}km/h</span></div>
+          <div>❄️ <span>${snowD>0?snowD.toLocaleString('es')+'m':'<100m'}</span></div>
+          ${coefD ? `<div>🌊 <span>Coef. ${coefD}</span></div>` : ''}
         </div>
-      </div>
-    `;
+      </div>`;
   }
 
   html += `</div>`;
 
-  // SEA STATE
-  html += `
+  // SEA
+  html += buildSeaSection(coef, cInfo, waveH, waveDir, sea, tideToday);
+
+  document.getElementById('main-content').innerHTML = html;
+  setTimeout(()=>{ const f=document.getElementById('snowFill'); if(f) f.style.width=snowPct+'%'; }, 200);
+}
+
+// ── RENDER con Open-Meteo ──────────────────────────────────
+async function renderWithFallback() {
+  const [omData, marineData] = await Promise.all([fetchOpenMeteo(), fetchMarine()]);
+  const cw    = omData.current_weather;
+  const daily = omData.daily;
+  const h     = omData.hourly;
+  const now   = new Date();
+  const todayStr = todayKey();
+  const hi    = h.time.findIndex(t=>t.startsWith(now.toISOString().slice(0,13)));
+  const hi_   = hi>=0?hi:0;
+
+  const hum   = Math.round(h.relativehumidity_2m?.[hi_]??0);
+  const feels = Math.round(h.apparent_temperature?.[hi_]??cw.temperature);
+  const snowLvl = snowLevel(cw.temperature);
+  const snowPct = Math.min(100,Math.max(1,(snowLvl/2600)*100));
+
+  const tideToday = getTideData(todayStr);
+  const coef = tideToday ? tideToday.coef : lunarCoef();
+  const cInfo = coefInfo(coef);
+
+  let waveH=1.0, waveDir='NO';
+  if(marineData?.hourly){
+    const mi=marineData.hourly.time.findIndex(t=>t.startsWith(now.toISOString().slice(0,13)));
+    if(mi>=0&&marineData.hourly.wave_height[mi]!=null){
+      waveH=marineData.hourly.wave_height[mi];
+      waveDir=windDir(marineData.hourly.wave_direction?.[mi]||315);
+    }
+  }
+  const sea=seaState(waveH);
+  const time_s=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  function omIcon(code,day=1){
+    const m={0:day?'☀️':'🌙',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'❄️',80:'🌦️',81:'🌧️',82:'⛈️',95:'⛈️',96:'⛈️',99:'⛈️'};
+    return m[code]||'🌡️';
+  }
+  function omDesc(code){
+    const d={0:'Despejado',1:'Mayormente despejado',2:'Parcialmente nublado',3:'Nublado',45:'Niebla',51:'Llovizna ligera',61:'Lluvia ligera',63:'Lluvia moderada',65:'Lluvia fuerte',71:'Nieve ligera',80:'Chubascos débiles',81:'Chubascos moderados',95:'Tormenta'};
+    return d[code]||'Variable';
+  }
+
+  let html = `
+    <div class="warn-msg">⚠️ Usando Open-Meteo como fuente. Para datos oficiales de AEMET introduce tu API Key gratuita arriba.</div>
+    <div class="current-section">
+      <div class="current-grid">
+        <div class="temp-display">
+          <div class="temp-val">${Math.round(cw.temperature)}<span class="temp-unit">°C</span></div>
+          <div class="cur-desc">${omIcon(cw.weathercode,cw.is_day)} ${omDesc(cw.weathercode)}</div>
+        </div>
+        <div class="cdivider"></div>
+        <div class="cur-stats">
+          <div class="stat-item"><span class="stat-label">💨 Viento</span><span class="stat-val">${Math.round(cw.windspeed)}<span class="stat-unit">km/h</span></span></div>
+          <div class="stat-item"><span class="stat-label">🧭 Dirección</span><span class="stat-val">${windDir(cw.winddirection)}</span></div>
+          <div class="stat-item"><span class="stat-label">💧 Humedad</span><span class="stat-val">${hum}<span class="stat-unit">%</span></span></div>
+          <div class="stat-item"><span class="stat-label">🌧️ Lluvia hoy</span><span class="stat-val">${(daily.precipitation_sum[0]||0).toFixed(1)}<span class="stat-unit">mm</span></span></div>
+          <div class="stat-item"><span class="stat-label">🌡️ Sensación</span><span class="stat-val">${feels}<span class="stat-unit">°C</span></span></div>
+          <div class="stat-item"><span class="stat-label">🔺🔻 Máx/Mín</span><span class="stat-val" style="font-size:.9rem">${Math.round(daily.temperature_2m_max[0])}°/${Math.round(daily.temperature_2m_min[0])}°</span></div>
+        </div>
+      </div>
+      <div class="update-bar">
+        <span><span class="live-dot"></span>EN VIVO · OPEN-METEO · AUTO-ACT. 30 MIN</span>
+        <span>ÚLT. ACT: ${time_s}</span>
+      </div>
+    </div>
+
+    <div class="section-title">❄️ Cota de nieve</div>
+    <div class="snow-bar">
+      <div class="snow-icon">🏔️</div>
+      <div class="snow-info">
+        <div class="snow-lbl">Altitud estimada cota de nieve</div>
+        <div class="snow-val">${snowLvl>0?snowLvl.toLocaleString('es')+' m':'A nivel del mar'}</div>
+      </div>
+      <div class="snow-track"><div class="snow-fill" id="snowFill"></div></div>
+    </div>
+
+    <div class="section-title">📅 Previsión 7 días</div>
+    <div class="forecast-grid">
+  `;
+
+  for(let i=0;i<7;i++){
+    const date=new Date(daily.time[i]+'T12:00:00');
+    const dName=i===0?'HOY':i===1?'MAÑANA':DAYS[date.getDay()];
+    const dStr=`${date.getDate()} ${MONTHS[date.getMonth()]}`;
+    const dKey=daily.time[i];
+    const tMax=Math.round(daily.temperature_2m_max[i]);
+    const tMin=Math.round(daily.temperature_2m_min[i]);
+    const rain=(daily.precipitation_sum[i]||0).toFixed(1);
+    const wind=Math.round(daily.windspeed_10m_max[i]);
+    const dir=windDir(daily.winddirection_10m_dominant[i]);
+    const snowD=snowLevel(tMax);
+    const tideD=getTideData(dKey);
+    const coefD=tideD?tideD.coef:null;
+    html+=`
+      <div class="fc-card ${i===0?'today':''}">
+        <div class="fc-day">${dName}<br><small style="opacity:.55;font-size:.54rem">${dStr}</small></div>
+        <div class="fc-icon">${omIcon(daily.weathercode[i],1)}</div>
+        <div class="fc-tmax">${tMax}°</div>
+        <div class="fc-tmin">${tMin}°</div>
+        <div class="fc-detail">
+          <div>🌧️ <span>${rain}mm</span></div>
+          <div>💨 <span>${wind}km/h ${dir}</span></div>
+          <div>❄️ <span>${snowD>0?snowD.toLocaleString('es')+'m':'<100m'}</span></div>
+          ${coefD?`<div>🌊 <span>Coef. ${coefD}</span></div>`:''}
+        </div>
+      </div>`;
+  }
+
+  html += `</div>`;
+  html += buildSeaSection(coef, cInfo, waveH, waveDir, sea, tideToday);
+
+  document.getElementById('main-content').innerHTML = html;
+  setTimeout(()=>{ const f=document.getElementById('snowFill'); if(f) f.style.width=snowPct+'%'; }, 200);
+}
+
+// ── Sección del mar (compartida) ───────────────────────────
+function buildSeaSection(coef, cInfo, waveH, waveDir, sea, tideToday) {
+  const tideMareStr = tideToday
+    ? `<div class="tides-lbl">⏱ Horario de mareas · Hoy</div>
+       <div class="tides-row">
+         ${tideToday.mareas.map(m=>`
+           <div class="tide-item">
+             <div class="tide-type">${m.t==='P'?'⬆️':'⬇️'}</div>
+             <div>
+               <div class="t-label">${m.t==='P'?'Pleamar':'Bajamar'}</div>
+               <div class="t-time">${m.h}</div>
+               <div class="t-h">${m.m>0?'+':''}${m.m} m</div>
+             </div>
+           </div>`).join('')}
+       </div>`
+    : `<div class="warn-msg" style="margin-top:12px">📋 No hay datos de mareas en la base de datos para hoy. Consulta el almanaque oficial.</div>`;
+
+  return `
     <div class="section-title">🌊 Estado del mar · Mareas</div>
     <div class="sea-section">
       <div class="sea-grid">
         <div class="sea-stat">
           <span class="stat-label">Estado del mar</span>
-          <div class="stat-value" style="color:var(--teal);font-size:1.3rem">${sea.state}</div>
-          <small style="color:rgba(0,229,204,0.5);font-size:0.7rem">Beaufort ${sea.beaufort}</small>
+          <div class="sea-stat-val" style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;color:var(--teal)">${sea.s}</div>
+          <small style="color:rgba(0,229,204,.45);font-size:.7rem">Beaufort ${sea.b}</small>
         </div>
         <div class="sea-stat">
           <span class="stat-label">Altura de ola</span>
-          <div class="stat-value">${currentWave.toFixed(1)}<span class="stat-unit">m</span></div>
-          <small style="color:rgba(0,229,204,0.5);font-size:0.7rem">Dir. procedencia: ${currentWaveDir}</small>
+          <div class="stat-val sea-val">${waveH.toFixed(1)}<span class="stat-unit">m</span></div>
+          <small style="color:rgba(0,229,204,.45);font-size:.7rem">Procedencia ${waveDir}</small>
         </div>
         <div class="sea-stat">
           <span class="stat-label">Coeficiente de marea</span>
-          <div class="stat-value" style="color:${tideInfo.color}">${coef}</div>
-          <div class="coef-badge" style="border-color:${tideInfo.color}33;color:${tideInfo.color};background:${tideInfo.color}11">
-            ${tideInfo.icon} MAREA ${tideInfo.type}
+          <div style="font-family:'Orbitron',monospace;font-size:2rem;font-weight:700;color:${cInfo.color}">${coef}</div>
+          <div class="coef-badge" style="border:1px solid ${cInfo.color}44;background:${cInfo.color}11;color:${cInfo.color}">
+            🌊 MAREA ${cInfo.tipo}
           </div>
         </div>
       </div>
-
-      <div class="tides-title">⏱ Horario de mareas · Hoy</div>
-      <div class="tides-row">
-        ${tides.map(t => `
-          <div class="tide-item">
-            <div class="tide-type">${t.icon}</div>
-            <div class="tide-info">
-              <div class="t-label">${t.label}</div>
-              <div class="t-time">${t.time}</div>
-              <div class="t-height">${t.height} m</div>
-            </div>
-          </div>
-        `).join('')}
-      </div>
+      ${tideMareStr}
       <div class="sea-wave"></div>
-    </div>
-  `;
-
-  document.getElementById('main-content').innerHTML = html;
-
-  // Animate snow bar
-  setTimeout(() => {
-    const fill = document.getElementById('snowFill');
-    if (fill) fill.style.width = snowPct + '%';
-  }, 100);
+    </div>`;
 }
 
+// ── INIT ───────────────────────────────────────────────────
 async function init() {
-  try {
-    const data = await fetchWeather();
-    renderWeather(data);
-  } catch (err) {
-    document.getElementById('main-content').innerHTML = `
-      <div class="error-msg">⚠️ Error al cargar los datos: ${err.message}. Reintentando...</div>
-    `;
-    console.error(err);
-    setTimeout(init, 10000);
+  const apiKey = getKey();
+  if (apiKey) {
+    document.getElementById('keyInput').value = apiKey;
+    try {
+      document.getElementById('main-content').innerHTML = '<div class="loading">CONECTANDO CON AEMET<span class="spinner"></span></div>';
+      const [aeData, marineData] = await Promise.all([fetchAEMET(apiKey), fetchMarine()]);
+      setStatus('✓ Datos AEMET cargados correctamente','ok');
+      renderWithAEMET(aeData, marineData);
+    } catch(err) {
+      console.error('AEMET error:', err);
+      setStatus('⚠️ Error con AEMET ('+err.message+'). Usando Open-Meteo…','err');
+      try { await renderWithFallback(); } catch(e2) { showError(e2); }
+    }
+  } else {
+    try { await renderWithFallback(); } catch(e) { showError(e); }
   }
 }
 
-// Initial load
-init();
+function showError(err) {
+  document.getElementById('main-content').innerHTML = `
+    <div class="error-msg">⚠️ Error al cargar datos: ${err.message}<br>Reintentando en 20 s…</div>`;
+  setTimeout(init, 20000);
+}
 
-// Auto-refresh every 30 minutes
-setInterval(init, 30 * 60 * 1000);
+init();
+setInterval(init, 30*60*1000);
 </script>
 </body>
 </html>
