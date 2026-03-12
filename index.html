@@ -5,1400 +5,1195 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EL TIEMPO EN LLANES</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <style>
-  :root {
-    --cyan: #00f5ff;
-    --teal: #00e5cc;
-    --darker: #000d1a;
-    --warn: #ff6b35;
-    --gold: #ffd700;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --cyan:#00f5ff; --teal:#00e5cc; --darker:#000d1a;
+  --warn:#ff6b35; --gold:#ffd700; --green:#00ff88;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--darker);color:#cce8ff;font-family:'Rajdhani',sans-serif;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(0,245,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,245,255,.04) 1px,transparent 1px);
+  background-size:60px 60px;animation:gridMove 20s linear infinite;pointer-events:none;z-index:0}
+body::after{content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(0,128,255,.15) 0%,transparent 60%),
+             radial-gradient(ellipse at 80% 100%,rgba(0,229,204,.08) 0%,transparent 50%);
+  pointer-events:none;z-index:0}
+@keyframes gridMove{0%{background-position:0 0}100%{background-position:60px 60px}}
+@keyframes scan{0%,100%{opacity:.4}50%{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.75)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
-  body {
-    background: var(--darker);
-    color: #cce8ff;
-    font-family: 'Rajdhani', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+.container{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:16px 20px}
 
-  body::before {
-    content:'';
-    position:fixed; inset:0;
-    background-image:
-      linear-gradient(rgba(0,245,255,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,245,255,0.04) 1px, transparent 1px);
-    background-size:60px 60px;
-    animation:gridMove 20s linear infinite;
-    pointer-events:none; z-index:0;
-  }
+/* ── HEADER ── */
+header{text-align:center;padding:36px 0 28px;position:relative}
+.hline{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);opacity:.35}
+.hline-top{top:0}.hline-bot{bottom:0}
+h1{font-family:'Orbitron',monospace;font-size:clamp(1.6rem,4.5vw,3.2rem);font-weight:900;letter-spacing:.14em;
+   background:linear-gradient(135deg,#fff 0%,var(--cyan) 50%,var(--teal) 100%);
+   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+   filter:drop-shadow(0 0 15px rgba(0,245,255,.4))}
+.subtitle{font-size:.82rem;letter-spacing:.38em;color:var(--teal);margin-top:7px;opacity:.8;text-transform:uppercase}
+.coords{font-size:.72rem;color:var(--cyan);opacity:.5;letter-spacing:.2em;margin-top:4px}
+.source-badge{display:inline-block;background:rgba(0,245,255,.06);border:1px solid rgba(0,245,255,.18);
+  border-radius:20px;padding:4px 14px;font-size:.64rem;color:rgba(0,245,255,.5);letter-spacing:.14em;margin-top:6px}
 
-  body::after {
-    content:'';
-    position:fixed; inset:0;
-    background: radial-gradient(ellipse at 50% 0%, rgba(0,128,255,0.15) 0%, transparent 60%),
-                radial-gradient(ellipse at 80% 100%, rgba(0,229,204,0.08) 0%, transparent 50%);
-    pointer-events:none; z-index:0;
-  }
+/* ── ALERTAS ── */
+.alert-panel{border-radius:4px;overflow:hidden;backdrop-filter:blur(10px);border:1px solid rgba(0,245,255,.15);margin:12px 0}
+.alert-header{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;
+  background:rgba(0,20,40,.8);border-bottom:1px solid rgba(0,245,255,.1)}
+.alert-header-left{display:flex;align-items:center;gap:9px;font-family:'Orbitron',monospace;
+  font-size:.72rem;letter-spacing:.22em;color:var(--cyan);text-transform:uppercase}
+.alert-dot-ok{width:8px;height:8px;border-radius:50%;background:#00ff88;box-shadow:0 0 8px #00ff88;flex-shrink:0}
+.alert-dot-warn{width:8px;height:8px;border-radius:50%;background:#ffaa00;box-shadow:0 0 10px #ffaa00;flex-shrink:0;animation:pulse 1.5s ease-in-out infinite}
+.alert-dot-red{width:8px;height:8px;border-radius:50%;background:#ff3333;box-shadow:0 0 12px #ff3333;flex-shrink:0;animation:pulse .8s ease-in-out infinite}
+.alert-ts{font-size:.62rem;color:rgba(0,245,255,.4);letter-spacing:.1em}
+.alert-none{padding:14px 18px;background:rgba(0,255,136,.04);font-size:.8rem;color:rgba(0,255,136,.6);letter-spacing:.1em;display:flex;align-items:center;gap:10px}
+.alert-item{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;gap:13px;align-items:flex-start}
+.alert-item:last-child{border-bottom:none}
+.alert-item.nivel-amarillo{background:rgba(255,200,0,.07);border-left:3px solid #ffcc00}
+.alert-item.nivel-naranja{background:rgba(255,120,0,.08);border-left:3px solid #ff7700}
+.alert-item.nivel-rojo{background:rgba(255,40,40,.1);border-left:3px solid #ff2222}
+.alert-icon{font-size:1.5rem;flex-shrink:0;margin-top:2px}
+.alert-body{flex:1}
+.alert-tipo{font-family:'Orbitron',monospace;font-size:.7rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;margin-bottom:4px}
+.alert-item.nivel-amarillo .alert-tipo{color:#ffcc00}
+.alert-item.nivel-naranja .alert-tipo{color:#ff8800}
+.alert-item.nivel-rojo .alert-tipo{color:#ff4444}
+.alert-desc{font-size:.78rem;color:rgba(220,230,255,.72);line-height:1.5}
+.alert-meta{font-size:.66rem;color:rgba(150,180,220,.5);margin-top:5px;letter-spacing:.08em}
+.nivel-badge{display:inline-block;border-radius:3px;padding:2px 8px;font-family:'Orbitron',monospace;font-size:.58rem;font-weight:700;letter-spacing:.14em;margin-left:7px;vertical-align:middle}
+.badge-amarillo{background:rgba(255,204,0,.2);color:#ffcc00;border:1px solid rgba(255,204,0,.4)}
+.badge-naranja{background:rgba(255,136,0,.2);color:#ff8800;border:1px solid rgba(255,136,0,.4)}
+.badge-rojo{background:rgba(255,50,50,.2);color:#ff4444;border:1px solid rgba(255,50,50,.4)}
 
-  @keyframes gridMove { 0%{background-position:0 0} 100%{background-position:60px 60px} }
+/* ── TABS ── */
+.tabs-wrap{margin:18px 0 0;position:sticky;top:0;z-index:50;background:rgba(0,8,20,.92);backdrop-filter:blur(14px);border-bottom:1px solid rgba(0,245,255,.15);padding:0}
+.tabs{display:flex;overflow-x:auto;gap:2px;padding:6px 6px 0;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{font-family:'Orbitron',monospace;font-size:.62rem;letter-spacing:.14em;color:rgba(0,245,255,.5);
+  text-transform:uppercase;padding:9px 16px;border-radius:4px 4px 0 0;border:1px solid transparent;
+  border-bottom:none;cursor:pointer;transition:all .25s;white-space:nowrap;background:transparent}
+.tab:hover{color:var(--cyan);background:rgba(0,245,255,.06)}
+.tab.active{color:var(--cyan);background:rgba(0,245,255,.1);border-color:rgba(0,245,255,.25);
+  border-bottom:2px solid var(--cyan);box-shadow:0 0 12px rgba(0,245,255,.1)}
 
-  .container { position:relative; z-index:1; max-width:1200px; margin:0 auto; padding:20px; }
+/* ── PANELS ── */
+.panel{display:none;animation:fadeIn .3s ease}
+.panel.active{display:block}
 
-  /* ── HEADER ── */
-  header { text-align:center; padding:40px 0 30px; position:relative; }
+/* ── SECTION TITLE ── */
+.section-title{font-family:'Orbitron',monospace;font-size:.78rem;letter-spacing:.35em;color:var(--cyan);
+  text-transform:uppercase;display:flex;align-items:center;gap:13px;margin:28px 0 13px}
+.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(0,245,255,.4),transparent)}
 
-  .hline {
-    position:absolute; left:0; right:0; height:1px;
-    background:linear-gradient(90deg,transparent,var(--cyan),transparent);
-    opacity:.35;
-  }
-  .hline-top{top:0} .hline-bot{bottom:0}
+/* ── CARDS BASE ── */
+.card{background:rgba(0,20,40,.72);border:1px solid rgba(0,245,255,.16);border-radius:4px;
+  backdrop-filter:blur(10px);position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--cyan),var(--teal),transparent);animation:scan 4s linear infinite}
 
-  h1 {
-    font-family:'Orbitron',monospace;
-    font-size:clamp(1.8rem,5vw,3.5rem);
-    font-weight:900; letter-spacing:.15em;
-    background:linear-gradient(135deg,#fff 0%,var(--cyan) 50%,var(--teal) 100%);
-    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-    filter:drop-shadow(0 0 15px rgba(0,245,255,.4));
-  }
+/* ── CURRENT WEATHER ── */
+.current-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:28px;align-items:center;padding:28px}
+@media(max-width:680px){.current-grid{grid-template-columns:1fr}.cdivider{display:none}}
+.temp-display{text-align:center}
+.temp-val{font-family:'Orbitron',monospace;font-size:clamp(3.5rem,9vw,6.5rem);font-weight:900;color:#fff;line-height:1;
+  filter:drop-shadow(0 0 12px rgba(0,245,255,.5))}
+.temp-unit{color:var(--cyan);font-size:.38em;vertical-align:super}
+.cur-desc{font-size:1rem;letter-spacing:.22em;color:var(--cyan);text-transform:uppercase;margin-top:9px}
+.cdivider{width:1px;height:130px;background:linear-gradient(180deg,transparent,var(--cyan),transparent);opacity:.32}
+.cur-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat-item{background:rgba(0,245,255,.04);border:1px solid rgba(0,245,255,.12);border-radius:3px;padding:11px 13px}
+.stat-label{font-size:.6rem;letter-spacing:.24em;color:var(--teal);text-transform:uppercase;opacity:.72;display:block;margin-bottom:4px}
+.stat-val{font-family:'Orbitron',monospace;font-size:1.05rem;font-weight:700;color:#fff}
+.stat-unit{font-size:.62rem;color:var(--cyan);margin-left:3px}
+.update-bar{display:flex;justify-content:space-between;align-items:center;padding:7px 18px;
+  border-top:1px solid rgba(0,245,255,.08);font-size:.64rem;color:rgba(0,245,255,.35);letter-spacing:.1em;flex-wrap:wrap;gap:5px}
+.live-dot{display:inline-block;width:6px;height:6px;background:var(--green);border-radius:50%;
+  margin-right:6px;animation:pulse 2s ease-in-out infinite;box-shadow:0 0 6px var(--green)}
 
-  .subtitle { font-size:.85rem; letter-spacing:.4em; color:var(--teal); margin-top:8px; opacity:.8; text-transform:uppercase; }
-  .coords   { font-size:.75rem; color:var(--cyan); opacity:.55; letter-spacing:.2em; margin-top:4px; }
+/* ── SNOW ── */
+.snow-bar{background:rgba(0,20,40,.7);border:1px solid rgba(150,200,255,.15);border-radius:4px;
+  padding:18px 22px;display:flex;align-items:center;gap:18px;backdrop-filter:blur(5px)}
+.snow-icon{font-size:1.9rem}
+.snow-info{flex:1}
+.snow-lbl{font-size:.62rem;letter-spacing:.26em;color:rgba(150,200,255,.52);text-transform:uppercase}
+.snow-val{font-family:'Orbitron',monospace;font-size:1.7rem;font-weight:700;color:#e0f0ff;margin-top:2px}
+.snow-track{flex:2;height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+.snow-fill{height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,var(--cyan),#a0d0ff);
+  transition:width 1.5s ease;box-shadow:0 0 8px rgba(0,245,255,.4)}
 
-  /* ── API KEY PANEL ── */
-  .apikey-panel {
-    background:rgba(0,20,40,.85);
-    border:1px solid rgba(0,245,255,.25);
-    border-radius:4px; padding:20px 24px;
-    margin:24px 0; backdrop-filter:blur(10px);
-    position:relative; overflow:hidden;
-  }
-  .apikey-panel::before {
-    content:''; position:absolute; top:0; left:0; right:0; height:2px;
-    background:linear-gradient(90deg,transparent,var(--gold),transparent); opacity:.6;
-  }
-  .apikey-title {
-    font-family:'Orbitron',monospace; font-size:.75rem;
-    letter-spacing:.3em; color:var(--gold); margin-bottom:10px; text-transform:uppercase;
-  }
-  .apikey-desc { font-size:.82rem; color:rgba(200,230,255,.65); margin-bottom:14px; line-height:1.6; }
-  .apikey-desc a { color:var(--cyan); }
-  .apikey-row { display:flex; gap:10px; flex-wrap:wrap; }
-  .apikey-input {
-    flex:1; min-width:260px;
-    background:rgba(0,245,255,.05);
-    border:1px solid rgba(0,245,255,.2);
-    border-radius:3px; padding:10px 14px;
-    color:#fff; font-family:'Rajdhani',sans-serif; font-size:.9rem;
-    outline:none; letter-spacing:.05em;
-  }
-  .apikey-input:focus { border-color:var(--cyan); }
-  .apikey-input::placeholder { color:rgba(0,245,255,.3); }
-  .btn {
-    background:rgba(0,245,255,.1);
-    border:1px solid rgba(0,245,255,.4);
-    border-radius:3px; padding:10px 20px;
-    color:var(--cyan); font-family:'Orbitron',monospace;
-    font-size:.7rem; letter-spacing:.2em;
-    cursor:pointer; transition:all .25s; white-space:nowrap;
-    text-transform:uppercase;
-  }
-  .btn:hover { background:rgba(0,245,255,.2); box-shadow:0 0 12px rgba(0,245,255,.2); }
-  .apikey-status { font-size:.75rem; margin-top:8px; letter-spacing:.1em; min-height:18px; }
-  .ok  { color:#00ff88; }
-  .err { color:#ff6666; }
+/* ── FORECAST ── */
+.forecast-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
+@media(max-width:900px){.forecast-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:480px){.forecast-grid{grid-template-columns:repeat(2,1fr)}}
+.fc-card{background:rgba(0,15,30,.82);border:1px solid rgba(0,245,255,.11);border-radius:4px;
+  padding:13px 9px;text-align:center;transition:all .3s;position:relative;overflow:hidden}
+.fc-card:hover{border-color:rgba(0,245,255,.42);transform:translateY(-2px);background:rgba(0,30,60,.9);box-shadow:0 8px 22px rgba(0,245,255,.09)}
+.fc-card.today{border-color:rgba(0,245,255,.38);background:rgba(0,40,80,.6)}
+.fc-card.today::before{content:'HOY';position:absolute;top:0;left:0;right:0;background:var(--cyan);color:#000;
+  font-family:'Orbitron',monospace;font-size:.52rem;font-weight:700;letter-spacing:.18em;padding:2px 0}
+.fc-day{font-family:'Orbitron',monospace;font-size:.6rem;letter-spacing:.16em;color:var(--teal);margin-top:7px;margin-bottom:5px}
+.fc-card.today .fc-day{margin-top:15px}
+.fc-icon{font-size:1.65rem;margin:5px 0;filter:drop-shadow(0 0 7px rgba(0,245,255,.32))}
+.fc-tmax{font-family:'Orbitron',monospace;font-size:1.15rem;font-weight:700;color:#fff}
+.fc-tmin{font-size:.78rem;color:rgba(200,230,255,.42);margin-top:2px}
+.fc-detail{margin-top:9px;padding-top:7px;border-top:1px solid rgba(0,245,255,.1);
+  font-size:.65rem;color:rgba(130,200,255,.62);line-height:1.85;text-align:left}
+.fc-detail span{color:var(--cyan);font-weight:600}
 
-  /* ── SECTION TITLES ── */
-  .section-title {
-    font-family:'Orbitron',monospace; font-size:.82rem;
-    letter-spacing:.38em; color:var(--cyan); text-transform:uppercase;
-    display:flex; align-items:center; gap:14px; margin:35px 0 14px;
-  }
-  .section-title::after { content:''; flex:1; height:1px; background:linear-gradient(90deg,rgba(0,245,255,.4),transparent); }
+/* ── HOURLY FORECAST ── */
+.hourly-scroll{overflow-x:auto;padding-bottom:8px;scrollbar-width:thin;scrollbar-color:rgba(0,245,255,.3) transparent}
+.hourly-row{display:flex;gap:7px;min-width:max-content;padding:4px 2px}
+.h-card{background:rgba(0,15,30,.82);border:1px solid rgba(0,245,255,.11);border-radius:4px;
+  padding:12px 10px;text-align:center;min-width:72px;transition:all .25s}
+.h-card:hover{border-color:rgba(0,245,255,.35);background:rgba(0,30,60,.9)}
+.h-card.current-h{border-color:rgba(0,245,255,.45);background:rgba(0,40,80,.7)}
+.h-hora{font-family:'Orbitron',monospace;font-size:.58rem;color:var(--teal);letter-spacing:.12em}
+.h-icon{font-size:1.4rem;margin:5px 0}
+.h-temp{font-family:'Orbitron',monospace;font-size:.95rem;font-weight:700;color:#fff}
+.h-prec{font-size:.62rem;color:rgba(100,180,255,.7);margin-top:3px}
+.h-wind{font-size:.6rem;color:rgba(0,245,255,.6);margin-top:2px}
 
-  /* ── CURRENT ── */
-  .current-section {
-    background:rgba(0,20,40,.7);
-    border:1px solid rgba(0,245,255,.2);
-    border-radius:4px; padding:30px; margin:24px 0;
-    position:relative; overflow:hidden; backdrop-filter:blur(10px);
-  }
-  .current-section::before {
-    content:''; position:absolute; top:0; left:0; right:0; height:2px;
-    background:linear-gradient(90deg,transparent,var(--cyan),var(--teal),transparent);
-    animation:scan 3s linear infinite;
-  }
-  @keyframes scan { 0%,100%{opacity:.5} 50%{opacity:1} }
+/* ── OBS GRID ── */
+.obs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:11px;margin:10px 0}
+.obs-card{background:rgba(0,18,35,.8);border:1px solid rgba(0,245,255,.13);border-radius:4px;
+  padding:16px 15px;backdrop-filter:blur(8px);transition:all .28s}
+.obs-card:hover{border-color:rgba(0,245,255,.28);background:rgba(0,30,55,.85)}
+.obs-icon{font-size:1.5rem;margin-bottom:7px}
+.obs-label{font-size:.6rem;letter-spacing:.26em;color:rgba(0,245,255,.48);text-transform:uppercase;display:block;margin-bottom:4px}
+.obs-val{font-family:'Orbitron',monospace;font-size:1.35rem;font-weight:700;color:#fff}
+.obs-unit{font-size:.64rem;color:var(--cyan);margin-left:3px}
+.obs-sub{font-size:.66rem;color:rgba(0,245,255,.38);margin-top:3px}
+.obs-station{background:rgba(0,245,255,.05);border:1px solid rgba(0,245,255,.15);border-radius:3px;
+  padding:10px 16px;font-size:.75rem;color:rgba(0,245,255,.55);letter-spacing:.12em;margin-bottom:14px;display:flex;align-items:center;gap:8px}
 
-  .current-grid {
-    display:grid; grid-template-columns:1fr auto 1fr; gap:30px; align-items:center;
-  }
-  @media(max-width:720px){
-    .current-grid{grid-template-columns:1fr}
-    .cdivider{display:none}
-    .forecast-grid{grid-template-columns:repeat(4,1fr)}
-  }
-  @media(max-width:480px){ .forecast-grid{grid-template-columns:repeat(2,1fr)} }
+/* ── CHARTS ── */
+.chart-wrap{background:rgba(0,18,35,.8);border:1px solid rgba(0,245,255,.14);border-radius:4px;
+  padding:18px;margin:10px 0;backdrop-filter:blur(8px)}
+.chart-title{font-family:'Orbitron',monospace;font-size:.68rem;letter-spacing:.22em;color:var(--teal);
+  text-transform:uppercase;margin-bottom:14px}
+canvas{display:block;width:100%!important;max-height:200px}
+.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:12px}
 
-  .temp-display { text-align:center; }
-  .temp-val {
-    font-family:'Orbitron',monospace;
-    font-size:clamp(4rem,10vw,7rem); font-weight:900; color:#fff; line-height:1;
-    filter:drop-shadow(0 0 12px rgba(0,245,255,.5));
-  }
-  .temp-unit { color:var(--cyan); font-size:.38em; vertical-align:super; }
-  .cur-desc { font-size:1.05rem; letter-spacing:.25em; color:var(--cyan); text-transform:uppercase; margin-top:10px; }
+/* ── SEA SECTION ── */
+.sea-section{background:rgba(0,20,40,.72);border:1px solid rgba(0,229,204,.2);border-radius:4px;
+  padding:22px;position:relative;overflow:hidden;backdrop-filter:blur(10px)}
+.sea-wave{position:absolute;bottom:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,transparent,var(--teal),transparent);animation:wave 3s ease-in-out infinite}
+@keyframes wave{0%,100%{transform:scaleX(.8);opacity:.4}50%{transform:scaleX(1);opacity:.8}}
+.sea-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:13px;margin-bottom:18px}
+.sea-stat{background:rgba(0,229,204,.05);border:1px solid rgba(0,229,204,.15);border-radius:3px;padding:14px;text-align:center}
+.sea-stat .stat-label{color:var(--teal)}
+.sea-stat .stat-val{font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:700;color:var(--teal)}
+.coef-badge{display:inline-flex;align-items:center;gap:7px;border-radius:20px;padding:5px 15px;
+  font-family:'Orbitron',monospace;font-size:.74rem;margin-top:10px;letter-spacing:.09em}
+.tides-lbl{font-size:.7rem;letter-spacing:.26em;color:var(--teal);margin:13px 0 9px;text-transform:uppercase}
+.tides-row{display:flex;gap:9px;flex-wrap:wrap}
+.tide-item{background:rgba(0,229,204,.05);border:1px solid rgba(0,229,204,.2);border-radius:3px;
+  padding:9px 13px;display:flex;align-items:center;gap:11px;flex:1;min-width:125px}
+.tide-type{font-size:1.25rem}
+.t-label{font-size:.57rem;letter-spacing:.18em;color:rgba(0,229,204,.52);text-transform:uppercase}
+.t-time{font-family:'Orbitron',monospace;font-size:.88rem;color:#fff;font-weight:700}
+.t-h{font-size:.7rem;color:var(--teal);margin-top:2px}
 
-  .cdivider { width:1px; height:130px; background:linear-gradient(180deg,transparent,var(--cyan),transparent); opacity:.35; }
+/* ── TEXTO MARITIMO / MONTAÑA ── */
+.text-box{background:rgba(0,18,35,.8);border:1px solid rgba(0,245,255,.14);border-radius:4px;
+  padding:20px 22px;backdrop-filter:blur(8px);line-height:1.75;font-size:.85rem;
+  color:rgba(200,225,255,.78);white-space:pre-wrap;max-height:360px;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:rgba(0,245,255,.3) transparent}
+.text-box::-webkit-scrollbar{width:5px}
+.text-box::-webkit-scrollbar-track{background:rgba(0,245,255,.05)}
+.text-box::-webkit-scrollbar-thumb{background:rgba(0,245,255,.3);border-radius:3px}
+.text-meta{font-size:.66rem;color:rgba(0,245,255,.38);letter-spacing:.12em;margin-bottom:9px}
 
-  .cur-stats { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+/* ── CLIMATOLOGIA ── */
+.clim-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin:10px 0}
+.clim-card{background:rgba(0,18,35,.8);border:1px solid rgba(0,245,255,.12);border-radius:4px;padding:14px;backdrop-filter:blur(6px)}
+.clim-date{font-family:'Orbitron',monospace;font-size:.58rem;color:var(--teal);letter-spacing:.14em;margin-bottom:8px}
+.clim-row{display:flex;justify-content:space-between;align-items:center;padding:3px 0;
+  border-bottom:1px solid rgba(0,245,255,.06);font-size:.74rem}
+.clim-row:last-child{border-bottom:none}
+.clim-key{color:rgba(0,245,255,.52)}
+.clim-v{font-family:'Orbitron',monospace;font-size:.78rem;font-weight:700;color:#fff}
 
-  .stat-item {
-    background:rgba(0,245,255,.04);
-    border:1px solid rgba(0,245,255,.13);
-    border-radius:3px; padding:12px 14px;
-  }
-  .stat-label { font-size:.62rem; letter-spacing:.26em; color:var(--teal); text-transform:uppercase; opacity:.75; display:block; margin-bottom:4px; }
-  .stat-val { font-family:'Orbitron',monospace; font-size:1.1rem; font-weight:700; color:#fff; }
-  .stat-unit { font-size:.65rem; color:var(--cyan); margin-left:3px; }
+/* ── RADAR ── */
+.radar-section{background:rgba(0,20,40,.75);border:1px solid rgba(0,245,255,.2);border-radius:4px;overflow:hidden;backdrop-filter:blur(10px);position:relative}
+.radar-section::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--cyan),var(--teal),transparent);animation:scan 4s linear infinite;z-index:10;pointer-events:none}
+.radar-header{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;
+  background:rgba(0,15,35,.82);border-bottom:1px solid rgba(0,245,255,.1)}
+.radar-header-left{display:flex;align-items:center;gap:9px;font-family:'Orbitron',monospace;
+  font-size:.72rem;letter-spacing:.22em;color:var(--cyan);text-transform:uppercase}
+.radar-controls{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.radar-btn{background:rgba(0,245,255,.08);border:1px solid rgba(0,245,255,.3);border-radius:3px;
+  padding:5px 13px;color:var(--cyan);font-family:'Orbitron',monospace;font-size:.62rem;
+  letter-spacing:.13em;cursor:pointer;transition:all .2s;text-transform:uppercase}
+.radar-btn:hover,.radar-btn.active{background:rgba(0,245,255,.2);box-shadow:0 0 10px rgba(0,245,255,.2)}
+.radar-ts{font-size:.63rem;color:rgba(0,245,255,.5);letter-spacing:.1em;min-width:75px;text-align:right}
+#radar-map{width:100%;height:420px;background:#000d1a}
+.radar-footer{padding:7px 15px;background:rgba(0,10,25,.7);font-size:.6rem;color:rgba(0,245,255,.32);
+  letter-spacing:.1em;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px}
+.radar-legend{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.radar-legend span{display:inline-block;width:13px;height:7px;border-radius:2px}
 
-  .update-bar {
-    display:flex; justify-content:space-between; align-items:center;
-    padding:8px 0; border-top:1px solid rgba(0,245,255,.08);
-    margin-top:20px; font-size:.68rem; color:rgba(0,245,255,.38);
-    letter-spacing:.12em; flex-wrap:wrap; gap:6px;
-  }
-  .live-dot {
-    display:inline-block; width:6px; height:6px; background:#00ff88;
-    border-radius:50%; margin-right:7px;
-    animation:pulse 2s ease-in-out infinite; box-shadow:0 0 7px #00ff88;
-  }
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.45;transform:scale(.75)} }
+/* ── MAPAS AEMET ── */
+.mapas-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin:10px 0}
+.mapa-card{background:rgba(0,18,35,.8);border:1px solid rgba(0,245,255,.14);border-radius:4px;overflow:hidden;backdrop-filter:blur(6px)}
+.mapa-card-title{font-family:'Orbitron',monospace;font-size:.65rem;letter-spacing:.2em;color:var(--cyan);
+  text-transform:uppercase;padding:10px 14px;border-bottom:1px solid rgba(0,245,255,.1);background:rgba(0,10,25,.6)}
+.mapa-card img{width:100%;height:auto;display:block;opacity:.9;transition:opacity .3s;filter:brightness(1.1) contrast(1.05)}
+.mapa-card img:hover{opacity:1}
+.mapa-card .no-img{padding:30px;text-align:center;font-size:.75rem;color:rgba(0,245,255,.35);letter-spacing:.14em}
 
-  /* ── FORECAST ── */
-  .forecast-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:8px; }
+/* ── LOADING / ERROR ── */
+.loading{text-align:center;padding:60px 0;color:var(--cyan);font-family:'Orbitron',monospace;font-size:.82rem;letter-spacing:.28em}
+.spinner{display:block;width:40px;height:40px;border:2px solid rgba(0,245,255,.15);border-top-color:var(--cyan);
+  border-radius:50%;margin:18px auto 0;animation:spin .9s linear infinite}
+.error-msg{background:rgba(255,60,60,.08);border:1px solid rgba(255,60,60,.25);color:#ff9999;
+  padding:13px 18px;border-radius:4px;font-size:.82rem;margin:9px 0;line-height:1.7}
+.warn-msg{background:rgba(255,170,0,.08);border:1px solid rgba(255,170,0,.22);color:#ffcc66;
+  padding:11px 16px;border-radius:4px;font-size:.78rem;margin:9px 0;line-height:1.6}
+.info-msg{background:rgba(0,245,255,.05);border:1px solid rgba(0,245,255,.18);color:rgba(0,245,255,.7);
+  padding:11px 16px;border-radius:4px;font-size:.78rem;margin:9px 0;line-height:1.6}
 
-  .fc-card {
-    background:rgba(0,15,30,.8); border:1px solid rgba(0,245,255,.12);
-    border-radius:4px; padding:14px 10px; text-align:center;
-    transition:all .3s; position:relative; overflow:hidden;
-  }
-  .fc-card:hover { border-color:rgba(0,245,255,.45); transform:translateY(-2px); background:rgba(0,30,60,.9); box-shadow:0 8px 25px rgba(0,245,255,.1); }
-  .fc-card.today { border-color:rgba(0,245,255,.4); background:rgba(0,40,80,.6); }
-  .fc-card.today::before {
-    content:'HOY'; position:absolute; top:0; left:0; right:0;
-    background:var(--cyan); color:#000;
-    font-family:'Orbitron',monospace; font-size:.53rem; font-weight:700;
-    letter-spacing:.2em; padding:2px 0;
-  }
-  .fc-day { font-family:'Orbitron',monospace; font-size:.62rem; letter-spacing:.18em; color:var(--teal); margin-top:8px; margin-bottom:5px; }
-  .fc-card.today .fc-day { margin-top:16px; }
-  .fc-icon { font-size:1.75rem; margin:6px 0; filter:drop-shadow(0 0 8px rgba(0,245,255,.35)); }
-  .fc-tmax { font-family:'Orbitron',monospace; font-size:1.25rem; font-weight:700; color:#fff; }
-  .fc-tmin { font-size:.82rem; color:rgba(200,230,255,.45); margin-top:2px; }
-  .fc-detail {
-    margin-top:10px; padding-top:8px; border-top:1px solid rgba(0,245,255,.1);
-    font-size:.68rem; color:rgba(130,200,255,.65); line-height:1.9; text-align:left;
-  }
-  .fc-detail span { color:var(--cyan); font-weight:600; }
-
-  /* ── SNOW ── */
-  .snow-bar {
-    background:rgba(0,20,40,.7); border:1px solid rgba(150,200,255,.15);
-    border-radius:4px; padding:20px 24px; display:flex; align-items:center; gap:20px;
-    backdrop-filter:blur(5px);
-  }
-  .snow-icon { font-size:2rem; }
-  .snow-info { flex:1; }
-  .snow-lbl { font-size:.64rem; letter-spacing:.3em; color:rgba(150,200,255,.55); text-transform:uppercase; }
-  .snow-val { font-family:'Orbitron',monospace; font-size:1.8rem; font-weight:700; color:#e0f0ff; margin-top:2px; }
-  .snow-track { flex:2; height:6px; background:rgba(255,255,255,.1); border-radius:3px; overflow:hidden; }
-  .snow-fill { height:100%; width:0%; border-radius:3px; background:linear-gradient(90deg,var(--cyan),#a0d0ff); transition:width 1.5s ease; box-shadow:0 0 8px rgba(0,245,255,.4); }
-
-  /* ── SEA ── */
-  .sea-section {
-    background:rgba(0,20,40,.7); border:1px solid rgba(0,229,204,.2);
-    border-radius:4px; padding:25px; position:relative; overflow:hidden;
-    backdrop-filter:blur(10px);
-  }
-  .sea-wave { position:absolute; bottom:0; left:0; right:0; height:4px; background:linear-gradient(90deg,transparent,var(--teal),transparent); animation:wave 3s ease-in-out infinite; }
-  @keyframes wave { 0%,100%{transform:scaleX(.8);opacity:.4} 50%{transform:scaleX(1);opacity:.8} }
-
-  .sea-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:15px; margin-bottom:20px; }
-
-  .sea-stat {
-    background:rgba(0,229,204,.05); border:1px solid rgba(0,229,204,.15);
-    border-radius:3px; padding:15px; text-align:center;
-  }
-  .sea-stat .stat-label { color:var(--teal); }
-  .sea-stat .stat-val { font-family:'Orbitron',monospace; font-size:1.5rem; font-weight:700; color:var(--teal); }
-
-  /* ── TIDES ── */
-  .tides-lbl { font-size:.72rem; letter-spacing:.28em; color:var(--teal); margin:15px 0 10px; text-transform:uppercase; }
-  .tides-row { display:flex; gap:10px; flex-wrap:wrap; }
-  .tide-item {
-    background:rgba(0,229,204,.05); border:1px solid rgba(0,229,204,.2);
-    border-radius:3px; padding:10px 15px;
-    display:flex; align-items:center; gap:12px; flex:1; min-width:130px;
-  }
-  .tide-type { font-size:1.3rem; }
-  .t-label { font-size:.58rem; letter-spacing:.2em; color:rgba(0,229,204,.55); text-transform:uppercase; }
-  .t-time  { font-family:'Orbitron',monospace; font-size:.9rem; color:#fff; font-weight:700; }
-  .t-h     { font-size:.72rem; color:var(--teal); margin-top:2px; }
-
-  .coef-badge {
-    display:inline-flex; align-items:center; gap:8px;
-    border-radius:20px; padding:6px 16px;
-    font-family:'Orbitron',monospace; font-size:.78rem; margin-top:12px; letter-spacing:.1em;
-  }
-
-  /* ── LOADING / ERROR ── */
-  .loading {
-    text-align:center; padding:70px 0;
-    color:var(--cyan); font-family:'Orbitron',monospace;
-    font-size:.85rem; letter-spacing:.3em;
-  }
-  .spinner {
-    display:block; width:42px; height:42px;
-    border:2px solid rgba(0,245,255,.15); border-top-color:var(--cyan);
-    border-radius:50%; margin:20px auto 0; animation:spin .9s linear infinite;
-  }
-  @keyframes spin { to{transform:rotate(360deg)} }
-
-  .error-msg {
-    background:rgba(255,60,60,.08); border:1px solid rgba(255,60,60,.25);
-    color:#ff9999; padding:14px 20px; border-radius:4px; font-size:.85rem; margin:10px 0; line-height:1.7;
-  }
-  .warn-msg {
-    background:rgba(255,170,0,.08); border:1px solid rgba(255,170,0,.25);
-    color:#ffcc66; padding:12px 18px; border-radius:4px; font-size:.8rem; margin:10px 0; line-height:1.6;
-  }
-
-  /* ── ALERTAS ── */
-  .alert-panel {
-    border-radius:4px; padding:0; margin:14px 0;
-    overflow:hidden; backdrop-filter:blur(10px);
-    border:1px solid rgba(0,245,255,.15);
-  }
-  .alert-header {
-    display:flex; align-items:center; justify-content:space-between;
-    padding:14px 20px;
-    background:rgba(0,20,40,.8);
-    border-bottom:1px solid rgba(0,245,255,.1);
-    cursor:default;
-  }
-  .alert-header-left {
-    display:flex; align-items:center; gap:10px;
-    font-family:'Orbitron',monospace; font-size:.78rem;
-    letter-spacing:.25em; color:var(--cyan); text-transform:uppercase;
-  }
-  .alert-dot-ok  { width:8px;height:8px;border-radius:50%;background:#00ff88;box-shadow:0 0 8px #00ff88;flex-shrink:0; }
-  .alert-dot-warn{ width:8px;height:8px;border-radius:50%;background:#ffaa00;box-shadow:0 0 10px #ffaa00;flex-shrink:0;animation:pulse 1.5s ease-in-out infinite; }
-  .alert-dot-red { width:8px;height:8px;border-radius:50%;background:#ff3333;box-shadow:0 0 12px #ff3333;flex-shrink:0;animation:pulse .8s ease-in-out infinite; }
-  .alert-ts { font-size:.62rem; color:rgba(0,245,255,.4); letter-spacing:.12em; }
-
-  .alert-none {
-    padding:16px 20px;
-    background:rgba(0,255,136,.04);
-    font-size:.82rem; color:rgba(0,255,136,.6);
-    letter-spacing:.1em; display:flex; align-items:center; gap:10px;
-  }
-
-  .alert-item {
-    padding:16px 20px;
-    border-bottom:1px solid rgba(255,255,255,.05);
-    display:flex; gap:14px; align-items:flex-start;
-  }
-  .alert-item:last-child { border-bottom:none; }
-
-  .alert-item.nivel-amarillo { background:rgba(255,200,0,.07); border-left:3px solid #ffcc00; }
-  .alert-item.nivel-naranja  { background:rgba(255,120,0,.08);  border-left:3px solid #ff7700; }
-  .alert-item.nivel-rojo     { background:rgba(255,40,40,.1);   border-left:3px solid #ff2222; }
-
-  .alert-icon { font-size:1.6rem; flex-shrink:0; margin-top:2px; }
-  .alert-body { flex:1; }
-  .alert-tipo {
-    font-family:'Orbitron',monospace; font-size:.72rem;
-    font-weight:700; letter-spacing:.18em; text-transform:uppercase; margin-bottom:4px;
-  }
-  .alert-item.nivel-amarillo .alert-tipo { color:#ffcc00; }
-  .alert-item.nivel-naranja  .alert-tipo { color:#ff8800; }
-  .alert-item.nivel-rojo     .alert-tipo { color:#ff4444; }
-
-  .alert-desc { font-size:.8rem; color:rgba(220,230,255,.75); line-height:1.5; }
-  .alert-meta { font-size:.68rem; color:rgba(150,180,220,.5); margin-top:5px; letter-spacing:.08em; }
-
-  .nivel-badge {
-    display:inline-block; border-radius:3px; padding:2px 8px;
-    font-family:'Orbitron',monospace; font-size:.6rem; font-weight:700;
-    letter-spacing:.15em; margin-left:8px; vertical-align:middle;
-  }
-  .badge-amarillo { background:rgba(255,204,0,.2);  color:#ffcc00; border:1px solid rgba(255,204,0,.4); }
-  .badge-naranja  { background:rgba(255,136,0,.2);  color:#ff8800; border:1px solid rgba(255,136,0,.4); }
-  .badge-rojo     { background:rgba(255,50,50,.2);  color:#ff4444; border:1px solid rgba(255,50,50,.4); }
-
-  /* ── RADAR ── */
-  .radar-section {
-    background: rgba(0,20,40,.75);
-    border: 1px solid rgba(0,245,255,.2);
-    border-radius: 4px;
-    overflow: hidden;
-    margin: 14px 0;
-    backdrop-filter: blur(10px);
-    position: relative;
-  }
-  .radar-section::before {
-    content:''; position:absolute; top:0; left:0; right:0; height:2px;
-    background:linear-gradient(90deg,transparent,var(--cyan),var(--teal),transparent);
-    animation:scan 4s linear infinite; z-index:10; pointer-events:none;
-  }
-  .radar-header {
-    display:flex; align-items:center; justify-content:space-between;
-    padding:13px 20px;
-    background:rgba(0,15,35,.8);
-    border-bottom:1px solid rgba(0,245,255,.1);
-  }
-  .radar-header-left {
-    display:flex; align-items:center; gap:10px;
-    font-family:'Orbitron',monospace; font-size:.78rem;
-    letter-spacing:.25em; color:var(--cyan); text-transform:uppercase;
-  }
-  .radar-controls {
-    display:flex; gap:8px; align-items:center; flex-wrap:wrap;
-  }
-  .radar-btn {
-    background:rgba(0,245,255,.08);
-    border:1px solid rgba(0,245,255,.3);
-    border-radius:3px; padding:5px 14px;
-    color:var(--cyan); font-family:'Orbitron',monospace;
-    font-size:.65rem; letter-spacing:.15em; cursor:pointer;
-    transition:all .2s; text-transform:uppercase;
-  }
-  .radar-btn:hover, .radar-btn.active {
-    background:rgba(0,245,255,.2);
-    box-shadow:0 0 10px rgba(0,245,255,.2);
-  }
-  .radar-ts {
-    font-size:.65rem; color:rgba(0,245,255,.5);
-    letter-spacing:.12em; min-width:80px; text-align:right;
-  }
-  #radar-map {
-    width:100%; height:460px;
-    background:#000d1a;
-  }
-  .radar-footer {
-    padding:7px 16px;
-    background:rgba(0,10,25,.7);
-    font-size:.62rem; color:rgba(0,245,255,.35);
-    letter-spacing:.12em; display:flex;
-    justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;
-  }
-  .radar-legend {
-    display:flex; align-items:center; gap:6px; flex-wrap:wrap;
-  }
-  .radar-legend span {
-    display:inline-block; width:14px; height:8px; border-radius:2px;
-  }
-
-  /* ── FOOTER ── */
-  footer { text-align:center; padding:35px 0 22px; }
-  footer::before { content:''; display:block; height:1px; background:linear-gradient(90deg,transparent,rgba(0,245,255,.2),transparent); margin-bottom:22px; }
-  .footer-text { font-family:'Orbitron',monospace; font-size:.72rem; letter-spacing:.42em; color:rgba(0,245,255,.35); text-transform:uppercase; }
-
-  .source-badge {
-    display:inline-block; background:rgba(0,245,255,.06);
-    border:1px solid rgba(0,245,255,.18); border-radius:20px;
-    padding:4px 14px; font-size:.65rem; color:rgba(0,245,255,.5);
-    letter-spacing:.15em; margin-top:6px;
-  }
+/* ── FOOTER ── */
+footer{text-align:center;padding:30px 0 20px}
+footer::before{content:'';display:block;height:1px;background:linear-gradient(90deg,transparent,rgba(0,245,255,.2),transparent);margin-bottom:20px}
+.footer-text{font-family:'Orbitron',monospace;font-size:.7rem;letter-spacing:.4em;color:rgba(0,245,255,.32);text-transform:uppercase}
 </style>
 </head>
 <body>
 <div class="container">
 
+  <!-- HEADER -->
   <header>
     <div class="hline hline-top"></div>
     <h1>EL TIEMPO EN LLANES</h1>
-    <div class="subtitle">Estación Meteorológica · Costa Cantábrica · Asturias</div>
+    <div class="subtitle">Centro Meteorológico · Costa Cantábrica · Asturias</div>
     <div class="coords">43.4206°N · 4.7549°O · ALT: 12 m</div>
-    <div><span class="source-badge">⚡ FUENTE: AEMET OpenData + Open-Meteo (fallback)</span></div>
+    <div><span class="source-badge">⚡ AEMET OpenData · Open-Meteo · RainViewer</span></div>
     <div class="hline hline-bot"></div>
   </header>
 
-  <!-- PANEL ALERTAS AEMET -->
+  <!-- ALERTAS -->
   <div id="alertas-panel"></div>
 
-  <!-- API KEY integrada — panel oculto -->
+  <!-- HIDDEN -->
   <div style="display:none" id="apikeyPanel">
-    <input id="keyInput" type="hidden" value="" />
+    <input id="keyInput" type="hidden"/>
     <div id="keyStatus"></div>
   </div>
 
-  <div id="main-content">
-    <div class="loading">INICIANDO SISTEMA<span class="spinner"></span></div>
-  </div>
-
-  <!-- RADAR DE LLUVIA -->
-  <div class="section-title" style="margin-top:35px">🌧️ Radar de lluvia · Asturias en tiempo real</div>
-  <div class="radar-section">
-    <div class="radar-header">
-      <div class="radar-header-left">
-        📡 Radar meteorológico · RainViewer + AEMET
-      </div>
-      <div class="radar-controls">
-        <button class="radar-btn" id="btn-play" onclick="radarPlayStop()">▶ PLAY</button>
-        <button class="radar-btn" onclick="radarPrev()">◀</button>
-        <button class="radar-btn" onclick="radarNext()">▶</button>
-        <div class="radar-ts" id="radar-ts">--:--</div>
-      </div>
-    </div>
-    <div id="radar-map"></div>
-    <div class="radar-footer">
-      <div class="radar-legend">
-        <span style="background:#99ccff"></span>Llovizna
-        <span style="background:#3399ff"></span>Ligera
-        <span style="background:#0033cc"></span>Moderada
-        <span style="background:#00cc44"></span>Fuerte
-        <span style="background:#ffcc00"></span>Muy fuerte
-        <span style="background:#ff6600"></span>Intensa
-        <span style="background:#cc0000"></span>Extrema
-      </div>
-      <div>Actualización cada 10 min · RainViewer API</div>
+  <!-- TABS -->
+  <div class="tabs-wrap">
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('tab-actual')">🌡️ Tiempo actual</div>
+      <div class="tab" onclick="showTab('tab-horaria')">⏱️ Predicción horaria</div>
+      <div class="tab" onclick="showTab('tab-diaria')">📅 Previsión 7 días</div>
+      <div class="tab" onclick="showTab('tab-obs')">📡 Observación 24h</div>
+      <div class="tab" onclick="showTab('tab-graficos')">📈 Gráficos 24h</div>
+      <div class="tab" onclick="showTab('tab-maritima')">⚓ Marítima</div>
+      <div class="tab" onclick="showTab('tab-montana')">🏔️ Montaña</div>
+      <div class="tab" onclick="showTab('tab-clim')">📊 Climatología</div>
+      <div class="tab" onclick="showTab('tab-radar')">🌧️ Radar</div>
+      <div class="tab" onclick="showTab('tab-mapas')">🗺️ Mapas AEMET</div>
     </div>
   </div>
 
-  <footer>
-    <div class="footer-text">Página de JaviTJ</div>
-  </footer>
+  <!-- ═══ PANEL: TIEMPO ACTUAL ═══ -->
+  <div id="tab-actual" class="panel active">
+    <div class="section-title">🌡️ Condiciones actuales</div>
+    <div class="card" id="current-card">
+      <div class="loading">CARGANDO DATOS AEMET<span class="spinner"></span></div>
+    </div>
+    <div class="section-title">❄️ Cota de nieve</div>
+    <div class="snow-bar" id="snow-bar-wrap">
+      <div class="snow-icon">🏔️</div>
+      <div class="snow-info">
+        <div class="snow-lbl">Altitud estimada cota de nieve</div>
+        <div class="snow-val" id="snow-val-txt">—</div>
+      </div>
+      <div class="snow-track"><div class="snow-fill" id="snowFill"></div></div>
+    </div>
+    <div class="section-title">🌊 Estado del mar · Mareas</div>
+    <div id="sea-panel"><div class="loading">CARGANDO<span class="spinner"></span></div></div>
+  </div>
 
+  <!-- ═══ PANEL: PREDICCIÓN HORARIA ═══ -->
+  <div id="tab-horaria" class="panel">
+    <div class="section-title">⏱️ Predicción horaria · Próximas 48h</div>
+    <div id="hourly-panel"><div class="loading">CARGANDO<span class="spinner"></span></div></div>
+  </div>
+
+  <!-- ═══ PANEL: PREVISIÓN 7 DÍAS ═══ -->
+  <div id="tab-diaria" class="panel">
+    <div class="section-title">📅 Previsión 7 días · AEMET</div>
+    <div class="forecast-grid" id="forecast-grid">
+      <div class="loading">CARGANDO<span class="spinner"></span></div>
+    </div>
+  </div>
+
+  <!-- ═══ PANEL: OBSERVACIÓN 24H ═══ -->
+  <div id="tab-obs" class="panel">
+    <div class="section-title">📡 Observación convencional · Últimas 24h</div>
+    <div id="obs-panel"><div class="loading">CARGANDO ESTACIONES AEMET<span class="spinner"></span></div></div>
+  </div>
+
+  <!-- ═══ PANEL: GRÁFICOS ═══ -->
+  <div id="tab-graficos" class="panel">
+    <div class="section-title">📈 Evolución últimas 24h · Estación automática</div>
+    <div id="charts-panel"><div class="loading">CARGANDO DATOS<span class="spinner"></span></div></div>
+  </div>
+
+  <!-- ═══ PANEL: MARÍTIMA ═══ -->
+  <div id="tab-maritima" class="panel">
+    <div class="section-title">⚓ Predicción marítima costera · Costa Cantábrica</div>
+    <div id="maritima-panel"><div class="loading">CARGANDO<span class="spinner"></span></div></div>
+  </div>
+
+  <!-- ═══ PANEL: MONTAÑA ═══ -->
+  <div id="tab-montana" class="panel">
+    <div class="section-title">🏔️ Predicción de montaña · Picos de Europa</div>
+    <div id="montana-panel"><div class="loading">CARGANDO<span class="spinner"></span></div></div>
+  </div>
+
+  <!-- ═══ PANEL: CLIMATOLOGÍA ═══ -->
+  <div id="tab-clim" class="panel">
+    <div class="section-title">📊 Valores climatológicos · Últimos 4 días</div>
+    <div id="clim-panel"><div class="loading">CARGANDO REGISTROS HISTÓRICOS<span class="spinner"></span></div></div>
+  </div>
+
+  <!-- ═══ PANEL: RADAR ═══ -->
+  <div id="tab-radar" class="panel">
+    <div class="section-title">🌧️ Radar de lluvia · Asturias en tiempo real</div>
+    <div class="radar-section">
+      <div class="radar-header">
+        <div class="radar-header-left">📡 Radar meteorológico · RainViewer</div>
+        <div class="radar-controls">
+          <button class="radar-btn" id="btn-play" onclick="radarPlayStop()">▶ PLAY</button>
+          <button class="radar-btn" onclick="radarPrev()">◀</button>
+          <button class="radar-btn" onclick="radarNext()">▶</button>
+          <div class="radar-ts" id="radar-ts">--:--</div>
+        </div>
+      </div>
+      <div id="radar-map"></div>
+      <div class="radar-footer">
+        <div class="radar-legend">
+          <span style="background:#99ccff"></span>Llovizna
+          <span style="background:#3399ff"></span>Ligera
+          <span style="background:#0033cc"></span>Moderada
+          <span style="background:#00cc44"></span>Fuerte
+          <span style="background:#ffcc00"></span>Muy fuerte
+          <span style="background:#ff6600"></span>Intensa
+          <span style="background:#cc0000"></span>Extrema
+        </div>
+        <div>Actualización cada 10 min</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PANEL: MAPAS AEMET ═══ -->
+  <div id="tab-mapas" class="panel">
+    <div class="section-title">🗺️ Mapas y gráficos AEMET</div>
+    <div id="mapas-panel"><div class="loading">CARGANDO MAPAS<span class="spinner"></span></div></div>
+  </div>
+
+  <footer><div class="footer-text">Página de JaviTJ</div></footer>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 // ════════════════════════════════════════════════════════════
 //  CONFIGURACIÓN
 // ════════════════════════════════════════════════════════════
 const LAT = 43.4206, LON = -4.7549;
-const MUNICIPIO = '33036'; // código AEMET para Llanes
+const MUNICIPIO = '33036';
+const AEMET_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0dWVyb2p1bmNvamF2aWVyQGdtYWlsLmNvbSIsImp0aSI6ImE3YWM3MjE4LTYzZjYtNDJlZS05MDY1LTQ0ODhhMzY4MTNjYiIsImlzcyI6IkFFTUVUIiwiaWF0IjoxNzczMzE2MTAwLCJ1c2VySWQiOiJhN2FjNzIxOC02M2Y2LTQyZWUtOTA2NS00NDg4YTM2ODEzY2IiLCJyb2xlIjoiIn0.TwFrksLEvG7-0nFQlpv2zH3XskKy5AxJDEEaqjKHQp0';
+// Estación AEMET más cercana a Llanes (Ribadesella 1018D / Llanes C030E)
+const IDEMA_LLANES = 'C030E'; // Estación automática de Llanes
+const IDEMA_ALT    = '1018D'; // Ribadesella como alternativa
+const PROXY = 'https://api.allorigins.win/get?url=';
 
-// ── COEFICIENTES REALES de los PDFs (Mareas de Llanes) ──────
-// Formato: 'YYYY-MM-DD': { coef, mareas:[{hora,altura,tipo}…] }
+// ── MAREAS PDF ──────────────────────────────────────────────
 const TIDES_DB = {
-  // ── MARZO 2026 ──
-  '2026-03-01':{ coef:85, mareas:[{h:'02:53',m:1.5,t:'P'},{h:'09:07',m:-1.6,t:'B'},{h:'15:25',m:1.4,t:'P'},{h:'21:19',m:-1.5,t:'B'}] },
-  '2026-03-02':{ coef:94, mareas:[{h:'03:40',m:1.8,t:'P'},{h:'09:52',m:-1.8,t:'B'},{h:'16:07',m:1.6,t:'P'},{h:'22:02',m:-1.7,t:'B'}] },
-  '2026-03-03':{ coef:98, mareas:[{h:'04:22',m:1.9,t:'P'},{h:'10:31',m:-1.9,t:'B'},{h:'16:45',m:1.7,t:'P'},{h:'22:41',m:-1.8,t:'B'}] },
-  '2026-03-04':{ coef:98, mareas:[{h:'05:00',m:2.0,t:'P'},{h:'11:07',m:-1.9,t:'B'},{h:'17:20',m:1.7,t:'P'},{h:'23:17',m:-1.9,t:'B'}] },
-  '2026-03-05':{ coef:93, mareas:[{h:'05:34',m:2.0,t:'P'},{h:'11:41',m:-1.9,t:'B'},{h:'17:52',m:1.7,t:'P'},{h:'23:51',m:-1.8,t:'B'}] },
-  '2026-03-06':{ coef:85, mareas:[{h:'06:07',m:1.8,t:'P'},{h:'12:13',m:-1.7,t:'B'},{h:'18:23',m:1.6,t:'P'}] },
-  '2026-03-07':{ coef:74, mareas:[{h:'00:25',m:-1.7,t:'B'},{h:'06:39',m:1.6,t:'P'},{h:'12:44',m:-1.6,t:'B'},{h:'18:53',m:1.4,t:'P'}] },
-  '2026-03-08':{ coef:61, mareas:[{h:'00:58',m:-1.5,t:'B'},{h:'07:10',m:1.4,t:'P'},{h:'13:16',m:-1.3,t:'B'},{h:'19:25',m:1.3,t:'P'}] },
-  '2026-03-09':{ coef:48, mareas:[{h:'01:34',m:-1.3,t:'B'},{h:'07:42',m:1.1,t:'P'},{h:'13:51',m:-1.1,t:'B'},{h:'20:00',m:1.1,t:'P'}] },
-  '2026-03-10':{ coef:35, mareas:[{h:'02:14',m:-1.0,t:'B'},{h:'08:21',m:0.9,t:'P'},{h:'14:32',m:-0.9,t:'B'},{h:'20:44',m:0.8,t:'P'}] },
-  '2026-03-11':{ coef:26, mareas:[{h:'03:05',m:-0.8,t:'B'},{h:'09:13',m:0.6,t:'P'},{h:'15:28',m:-0.6,t:'B'},{h:'21:49',m:0.7,t:'P'}] },
-  '2026-03-12':{ coef:25, mareas:[{h:'04:21',m:-0.6,t:'B'},{h:'10:40',m:0.4,t:'P'},{h:'16:53',m:-0.5,t:'B'},{h:'23:30',m:0.6,t:'P'}] },
-  '2026-03-13':{ coef:34, mareas:[{h:'06:00',m:-0.6,t:'B'},{h:'12:33',m:0.5,t:'P'},{h:'18:29',m:-0.5,t:'B'}] },
-  '2026-03-14':{ coef:48, mareas:[{h:'01:04',m:0.7,t:'P'},{h:'07:22',m:-0.7,t:'B'},{h:'13:47',m:0.7,t:'P'},{h:'19:39',m:-0.7,t:'B'}] },
-  '2026-03-15':{ coef:63, mareas:[{h:'02:03',m:1.0,t:'P'},{h:'08:15',m:-1.0,t:'B'},{h:'14:33',m:0.9,t:'P'},{h:'20:26',m:-1.0,t:'B'}] },
-  '2026-03-16':{ coef:77, mareas:[{h:'02:45',m:1.2,t:'P'},{h:'08:55',m:-1.3,t:'B'},{h:'15:10',m:1.2,t:'P'},{h:'21:05',m:-1.3,t:'B'}] },
-  '2026-03-17':{ coef:90, mareas:[{h:'03:21',m:1.5,t:'P'},{h:'09:30',m:-1.5,t:'B'},{h:'15:43',m:1.4,t:'P'},{h:'21:40',m:-1.5,t:'B'}] },
-  '2026-03-18':{ coef:100,mareas:[{h:'03:56',m:1.7,t:'P'},{h:'10:04',m:-1.8,t:'B'},{h:'16:16',m:1.6,t:'P'},{h:'22:15',m:-1.8,t:'B'}] },
-  '2026-03-19':{ coef:105,mareas:[{h:'04:30',m:1.9,t:'P'},{h:'10:39',m:-1.9,t:'B'},{h:'16:50',m:1.8,t:'P'},{h:'22:50',m:-1.9,t:'B'}] },
-  '2026-03-20':{ coef:105,mareas:[{h:'05:05',m:2.0,t:'P'},{h:'11:14',m:-2.0,t:'B'},{h:'17:25',m:1.9,t:'P'},{h:'23:28',m:-2.0,t:'B'}] },
-  '2026-03-21':{ coef:98, mareas:[{h:'05:43',m:2.1,t:'P'},{h:'11:52',m:-2.0,t:'B'},{h:'18:02',m:1.9,t:'P'}] },
-  '2026-03-22':{ coef:87, mareas:[{h:'00:08',m:-2.0,t:'B'},{h:'06:22',m:1.9,t:'P'},{h:'12:31',m:-1.9,t:'B'},{h:'18:42',m:1.8,t:'P'}] },
-  '2026-03-23':{ coef:71, mareas:[{h:'00:51',m:-1.8,t:'B'},{h:'07:06',m:1.7,t:'P'},{h:'13:14',m:-1.6,t:'B'},{h:'19:27',m:1.6,t:'P'}] },
-  '2026-03-24':{ coef:55, mareas:[{h:'01:39',m:-1.6,t:'B'},{h:'07:55',m:1.4,t:'P'},{h:'14:03',m:-1.3,t:'B'},{h:'20:19',m:1.3,t:'P'}] },
-  '2026-03-25':{ coef:42, mareas:[{h:'02:37',m:-1.3,t:'B'},{h:'08:55',m:1.1,t:'P'},{h:'15:03',m:-1.0,t:'B'},{h:'21:26',m:1.1,t:'P'}] },
-  '2026-03-26':{ coef:39, mareas:[{h:'03:51',m:-1.0,t:'B'},{h:'10:19',m:0.8,t:'P'},{h:'16:23',m:-0.8,t:'B'},{h:'22:57',m:1.0,t:'P'}] },
-  '2026-03-27':{ coef:48, mareas:[{h:'05:25',m:-0.9,t:'B'},{h:'12:01',m:0.7,t:'P'},{h:'17:57',m:-0.8,t:'B'}] },
-  '2026-03-28':{ coef:61, mareas:[{h:'00:32',m:1.0,t:'P'},{h:'06:55',m:-1.1,t:'B'},{h:'13:24',m:0.9,t:'P'},{h:'19:17',m:-1.0,t:'B'}] },
-  '2026-03-29':{ coef:74, mareas:[{h:'00:44',m:1.3,t:'P'},{h:'09:01',m:-1.3,t:'B'},{h:'15:22',m:1.1,t:'P'},{h:'21:16',m:-1.2,t:'B'}] },
-  '2026-03-30':{ coef:84, mareas:[{h:'03:38',m:1.5,t:'P'},{h:'09:50',m:-1.5,t:'B'},{h:'16:08',m:1.4,t:'P'},{h:'22:02',m:-1.4,t:'B'}] },
-  '2026-03-31':{ coef:91, mareas:[{h:'04:22',m:1.7,t:'P'},{h:'10:31',m:-1.7,t:'B'},{h:'16:46',m:1.5,t:'P'},{h:'22:42',m:-1.6,t:'B'}] },
-  // ── ABRIL 2026 ──
-  '2026-04-01':{ coef:93, mareas:[{h:'05:00',m:1.8,t:'P'},{h:'11:06',m:-1.8,t:'B'},{h:'17:20',m:1.6,t:'P'},{h:'23:18',m:-1.7,t:'B'}] },
-  '2026-04-02':{ coef:92, mareas:[{h:'05:35',m:1.8,t:'P'},{h:'11:39',m:-1.8,t:'B'},{h:'17:52',m:1.7,t:'P'},{h:'23:51',m:-1.8,t:'B'}] },
-  '2026-04-03':{ coef:87, mareas:[{h:'06:07',m:1.8,t:'P'},{h:'12:10',m:-1.7,t:'B'},{h:'18:22',m:1.7,t:'P'}] },
-  '2026-04-04':{ coef:80, mareas:[{h:'00:24',m:-1.7,t:'B'},{h:'06:37',m:1.7,t:'P'},{h:'12:40',m:-1.6,t:'B'},{h:'18:51',m:1.6,t:'P'}] },
-  '2026-04-05':{ coef:71, mareas:[{h:'00:56',m:-1.6,t:'B'},{h:'07:07',m:1.5,t:'P'},{h:'13:10',m:-1.5,t:'B'},{h:'19:20',m:1.5,t:'P'}] },
-  '2026-04-06':{ coef:60, mareas:[{h:'01:29',m:-1.5,t:'B'},{h:'07:37',m:1.3,t:'P'},{h:'13:41',m:-1.3,t:'B'},{h:'19:51',m:1.3,t:'P'}] },
-  '2026-04-07':{ coef:48, mareas:[{h:'02:04',m:-1.3,t:'B'},{h:'08:10',m:1.1,t:'P'},{h:'14:15',m:-1.1,t:'B'},{h:'20:26',m:1.1,t:'P'}] },
-  '2026-04-08':{ coef:37, mareas:[{h:'02:44',m:-1.0,t:'B'},{h:'08:49',m:0.9,t:'P'},{h:'14:56',m:-0.9,t:'B'},{h:'21:09',m:0.9,t:'P'}] },
-  '2026-04-09':{ coef:29, mareas:[{h:'03:34',m:-0.8,t:'B'},{h:'09:40',m:0.6,t:'P'},{h:'15:49',m:-0.7,t:'B'},{h:'22:09',m:0.7,t:'P'}] },
-  '2026-04-10':{ coef:28, mareas:[{h:'04:43',m:-0.7,t:'B'},{h:'10:59',m:0.5,t:'P'},{h:'17:06',m:-0.5,t:'B'},{h:'23:36',m:0.6,t:'P'}] },
-  '2026-04-11':{ coef:37, mareas:[{h:'06:12',m:-0.6,t:'B'},{h:'12:40',m:0.5,t:'P'},{h:'18:37',m:-0.6,t:'B'}] },
-  '2026-04-12':{ coef:50, mareas:[{h:'01:08',m:0.7,t:'P'},{h:'07:32',m:-0.8,t:'B'},{h:'13:57',m:0.7,t:'P'},{h:'19:50',m:-0.7,t:'B'}] },
-  '2026-04-13':{ coef:65, mareas:[{h:'02:13',m:0.9,t:'P'},{h:'08:29',m:-1.0,t:'B'},{h:'14:48',m:0.9,t:'P'},{h:'20:42',m:-1.0,t:'B'}] },
-  '2026-04-14':{ coef:80, mareas:[{h:'03:01',m:1.2,t:'P'},{h:'09:13',m:-1.3,t:'B'},{h:'15:29',m:1.2,t:'P'},{h:'21:25',m:-1.3,t:'B'}] },
-  '2026-04-15':{ coef:92, mareas:[{h:'03:42',m:1.5,t:'P'},{h:'09:52',m:-1.6,t:'B'},{h:'16:06',m:1.5,t:'P'},{h:'22:05',m:-1.6,t:'B'}] },
-  '2026-04-16':{ coef:101,mareas:[{h:'04:21',m:1.7,t:'P'},{h:'10:30',m:-1.8,t:'B'},{h:'16:43',m:1.7,t:'P'},{h:'22:44',m:-1.8,t:'B'}] },
-  '2026-04-17':{ coef:105,mareas:[{h:'05:00',m:1.9,t:'P'},{h:'11:08',m:-2.0,t:'B'},{h:'17:21',m:1.9,t:'P'},{h:'23:25',m:-2.0,t:'B'}] },
-  '2026-04-18':{ coef:103,mareas:[{h:'05:40',m:2.0,t:'P'},{h:'11:47',m:-2.0,t:'B'},{h:'18:00',m:2.0,t:'P'}] },
-  '2026-04-19':{ coef:95, mareas:[{h:'00:07',m:-2.1,t:'B'},{h:'06:22',m:2.0,t:'P'},{h:'12:29',m:-2.0,t:'B'},{h:'18:42',m:2.0,t:'P'}] },
-  '2026-04-20':{ coef:83, mareas:[{h:'00:51',m:-2.0,t:'B'},{h:'07:07',m:1.9,t:'P'},{h:'13:12',m:-1.8,t:'B'},{h:'19:27',m:1.9,t:'P'}] },
-  '2026-04-21':{ coef:68, mareas:[{h:'01:39',m:-1.8,t:'B'},{h:'07:55',m:1.6,t:'P'},{h:'13:59',m:-1.6,t:'B'},{h:'20:16',m:1.7,t:'P'}] },
-  '2026-04-22':{ coef:54, mareas:[{h:'02:32',m:-1.6,t:'B'},{h:'08:49',m:1.3,t:'P'},{h:'14:52',m:-1.3,t:'B'},{h:'21:13',m:1.4,t:'P'}] },
-  '2026-04-23':{ coef:46, mareas:[{h:'03:34',m:-1.3,t:'B'},{h:'09:55',m:1.0,t:'P'},{h:'15:56',m:-1.0,t:'B'},{h:'22:23',m:1.2,t:'P'}] },
-  '2026-04-24':{ coef:45, mareas:[{h:'04:50',m:-1.1,t:'B'},{h:'11:18',m:0.8,t:'P'},{h:'17:14',m:-0.9,t:'B'},{h:'23:48',m:1.1,t:'P'}] },
-  '2026-04-25':{ coef:52, mareas:[{h:'06:16',m:-1.1,t:'B'},{h:'12:47',m:0.8,t:'P'},{h:'18:40',m:-0.8,t:'B'}] },
-  '2026-04-26':{ coef:61, mareas:[{h:'01:11',m:1.1,t:'P'},{h:'07:34',m:-1.1,t:'B'},{h:'14:01',m:0.9,t:'P'},{h:'19:53',m:-1.0,t:'B'}] },
-  '2026-04-27':{ coef:70, mareas:[{h:'02:19',m:1.2,t:'P'},{h:'08:35',m:-1.3,t:'B'},{h:'14:56',m:1.1,t:'P'},{h:'20:50',m:-1.2,t:'B'}] },
-  '2026-04-28':{ coef:77, mareas:[{h:'03:11',m:1.4,t:'P'},{h:'09:22',m:-1.4,t:'B'},{h:'15:40',m:1.3,t:'P'},{h:'21:36',m:-1.3,t:'B'}] },
-  '2026-04-29':{ coef:81, mareas:[{h:'03:55',m:1.5,t:'P'},{h:'10:01',m:-1.5,t:'B'},{h:'16:18',m:1.4,t:'P'},{h:'22:16',m:-1.5,t:'B'}] },
-  '2026-04-30':{ coef:83, mareas:[{h:'04:33',m:1.6,t:'P'},{h:'10:36',m:-1.6,t:'B'},{h:'16:52',m:1.5,t:'P'},{h:'22:52',m:-1.6,t:'B'}] },
+  '2026-03-01':{coef:85,mareas:[{h:'02:53',m:1.5,t:'P'},{h:'09:07',m:-1.6,t:'B'},{h:'15:25',m:1.4,t:'P'},{h:'21:19',m:-1.5,t:'B'}]},
+  '2026-03-02':{coef:94,mareas:[{h:'03:40',m:1.8,t:'P'},{h:'09:52',m:-1.8,t:'B'},{h:'16:07',m:1.6,t:'P'},{h:'22:02',m:-1.7,t:'B'}]},
+  '2026-03-03':{coef:98,mareas:[{h:'04:22',m:1.9,t:'P'},{h:'10:31',m:-1.9,t:'B'},{h:'16:45',m:1.7,t:'P'},{h:'22:41',m:-1.8,t:'B'}]},
+  '2026-03-04':{coef:98,mareas:[{h:'05:00',m:2.0,t:'P'},{h:'11:07',m:-1.9,t:'B'},{h:'17:20',m:1.7,t:'P'},{h:'23:17',m:-1.9,t:'B'}]},
+  '2026-03-05':{coef:93,mareas:[{h:'05:34',m:2.0,t:'P'},{h:'11:41',m:-1.9,t:'B'},{h:'17:52',m:1.7,t:'P'},{h:'23:51',m:-1.8,t:'B'}]},
+  '2026-03-06':{coef:85,mareas:[{h:'06:07',m:1.8,t:'P'},{h:'12:13',m:-1.7,t:'B'},{h:'18:23',m:1.6,t:'P'}]},
+  '2026-03-07':{coef:74,mareas:[{h:'00:25',m:-1.7,t:'B'},{h:'06:39',m:1.6,t:'P'},{h:'12:44',m:-1.6,t:'B'},{h:'18:53',m:1.4,t:'P'}]},
+  '2026-03-08':{coef:61,mareas:[{h:'00:58',m:-1.5,t:'B'},{h:'07:10',m:1.4,t:'P'},{h:'13:16',m:-1.3,t:'B'},{h:'19:25',m:1.3,t:'P'}]},
+  '2026-03-09':{coef:48,mareas:[{h:'01:34',m:-1.3,t:'B'},{h:'07:42',m:1.1,t:'P'},{h:'13:51',m:-1.1,t:'B'},{h:'20:00',m:1.1,t:'P'}]},
+  '2026-03-10':{coef:35,mareas:[{h:'02:14',m:-1.0,t:'B'},{h:'08:21',m:0.9,t:'P'},{h:'14:32',m:-0.9,t:'B'},{h:'20:44',m:0.8,t:'P'}]},
+  '2026-03-11':{coef:26,mareas:[{h:'03:05',m:-0.8,t:'B'},{h:'09:13',m:0.6,t:'P'},{h:'15:28',m:-0.6,t:'B'},{h:'21:49',m:0.7,t:'P'}]},
+  '2026-03-12':{coef:25,mareas:[{h:'04:21',m:-0.6,t:'B'},{h:'10:40',m:0.4,t:'P'},{h:'16:53',m:-0.5,t:'B'},{h:'23:30',m:0.6,t:'P'}]},
+  '2026-03-13':{coef:34,mareas:[{h:'06:00',m:-0.6,t:'B'},{h:'12:33',m:0.5,t:'P'},{h:'18:29',m:-0.5,t:'B'}]},
+  '2026-03-14':{coef:48,mareas:[{h:'01:04',m:0.7,t:'P'},{h:'07:22',m:-0.7,t:'B'},{h:'13:47',m:0.7,t:'P'},{h:'19:39',m:-0.7,t:'B'}]},
+  '2026-03-15':{coef:63,mareas:[{h:'02:03',m:1.0,t:'P'},{h:'08:15',m:-1.0,t:'B'},{h:'14:33',m:0.9,t:'P'},{h:'20:26',m:-1.0,t:'B'}]},
+  '2026-03-16':{coef:77,mareas:[{h:'02:45',m:1.2,t:'P'},{h:'08:55',m:-1.3,t:'B'},{h:'15:10',m:1.2,t:'P'},{h:'21:05',m:-1.3,t:'B'}]},
+  '2026-03-17':{coef:90,mareas:[{h:'03:21',m:1.5,t:'P'},{h:'09:30',m:-1.5,t:'B'},{h:'15:43',m:1.4,t:'P'},{h:'21:40',m:-1.5,t:'B'}]},
+  '2026-03-18':{coef:100,mareas:[{h:'03:56',m:1.7,t:'P'},{h:'10:04',m:-1.8,t:'B'},{h:'16:16',m:1.6,t:'P'},{h:'22:15',m:-1.8,t:'B'}]},
+  '2026-03-19':{coef:105,mareas:[{h:'04:30',m:1.9,t:'P'},{h:'10:39',m:-1.9,t:'B'},{h:'16:50',m:1.8,t:'P'},{h:'22:50',m:-1.9,t:'B'}]},
+  '2026-03-20':{coef:105,mareas:[{h:'05:05',m:2.0,t:'P'},{h:'11:14',m:-2.0,t:'B'},{h:'17:25',m:1.9,t:'P'},{h:'23:28',m:-2.0,t:'B'}]},
+  '2026-03-21':{coef:98,mareas:[{h:'05:43',m:2.1,t:'P'},{h:'11:52',m:-2.0,t:'B'},{h:'18:02',m:1.9,t:'P'}]},
+  '2026-03-22':{coef:87,mareas:[{h:'00:08',m:-2.0,t:'B'},{h:'06:22',m:1.9,t:'P'},{h:'12:31',m:-1.9,t:'B'},{h:'18:42',m:1.8,t:'P'}]},
+  '2026-03-23':{coef:71,mareas:[{h:'00:51',m:-1.8,t:'B'},{h:'07:06',m:1.7,t:'P'},{h:'13:14',m:-1.6,t:'B'},{h:'19:27',m:1.6,t:'P'}]},
+  '2026-03-24':{coef:55,mareas:[{h:'01:39',m:-1.6,t:'B'},{h:'07:55',m:1.4,t:'P'},{h:'14:03',m:-1.3,t:'B'},{h:'20:19',m:1.3,t:'P'}]},
+  '2026-03-25':{coef:42,mareas:[{h:'02:37',m:-1.3,t:'B'},{h:'08:55',m:1.1,t:'P'},{h:'15:03',m:-1.0,t:'B'},{h:'21:26',m:1.1,t:'P'}]},
+  '2026-03-26':{coef:39,mareas:[{h:'03:51',m:-1.0,t:'B'},{h:'10:19',m:0.8,t:'P'},{h:'16:23',m:-0.8,t:'B'},{h:'22:57',m:1.0,t:'P'}]},
+  '2026-03-27':{coef:48,mareas:[{h:'05:25',m:-0.9,t:'B'},{h:'12:01',m:0.7,t:'P'},{h:'17:57',m:-0.8,t:'B'}]},
+  '2026-03-28':{coef:61,mareas:[{h:'00:32',m:1.0,t:'P'},{h:'06:55',m:-1.1,t:'B'},{h:'13:24',m:0.9,t:'P'},{h:'19:17',m:-1.0,t:'B'}]},
+  '2026-03-29':{coef:74,mareas:[{h:'00:44',m:1.3,t:'P'},{h:'09:01',m:-1.3,t:'B'},{h:'15:22',m:1.1,t:'P'},{h:'21:16',m:-1.2,t:'B'}]},
+  '2026-03-30':{coef:84,mareas:[{h:'03:38',m:1.5,t:'P'},{h:'09:50',m:-1.5,t:'B'},{h:'16:08',m:1.4,t:'P'},{h:'22:02',m:-1.4,t:'B'}]},
+  '2026-03-31':{coef:91,mareas:[{h:'04:22',m:1.7,t:'P'},{h:'10:31',m:-1.7,t:'B'},{h:'16:46',m:1.5,t:'P'},{h:'22:42',m:-1.6,t:'B'}]},
+  '2026-04-01':{coef:93,mareas:[{h:'05:00',m:1.8,t:'P'},{h:'11:06',m:-1.8,t:'B'},{h:'17:20',m:1.6,t:'P'},{h:'23:18',m:-1.7,t:'B'}]},
+  '2026-04-02':{coef:92,mareas:[{h:'05:35',m:1.8,t:'P'},{h:'11:39',m:-1.8,t:'B'},{h:'17:52',m:1.7,t:'P'},{h:'23:51',m:-1.8,t:'B'}]},
+  '2026-04-03':{coef:87,mareas:[{h:'06:07',m:1.8,t:'P'},{h:'12:10',m:-1.7,t:'B'},{h:'18:22',m:1.7,t:'P'}]},
+  '2026-04-04':{coef:80,mareas:[{h:'00:24',m:-1.7,t:'B'},{h:'06:37',m:1.7,t:'P'},{h:'12:40',m:-1.6,t:'B'},{h:'18:51',m:1.6,t:'P'}]},
+  '2026-04-05':{coef:71,mareas:[{h:'00:56',m:-1.6,t:'B'},{h:'07:07',m:1.5,t:'P'},{h:'13:10',m:-1.5,t:'B'},{h:'19:20',m:1.5,t:'P'}]},
+  '2026-04-06':{coef:60,mareas:[{h:'01:29',m:-1.5,t:'B'},{h:'07:37',m:1.3,t:'P'},{h:'13:41',m:-1.3,t:'B'},{h:'19:51',m:1.3,t:'P'}]},
+  '2026-04-07':{coef:48,mareas:[{h:'02:04',m:-1.3,t:'B'},{h:'08:10',m:1.1,t:'P'},{h:'14:15',m:-1.1,t:'B'},{h:'20:26',m:1.1,t:'P'}]},
+  '2026-04-08':{coef:37,mareas:[{h:'02:44',m:-1.0,t:'B'},{h:'08:49',m:0.9,t:'P'},{h:'14:56',m:-0.9,t:'B'},{h:'21:09',m:0.9,t:'P'}]},
+  '2026-04-09':{coef:29,mareas:[{h:'03:34',m:-0.8,t:'B'},{h:'09:40',m:0.6,t:'P'},{h:'15:49',m:-0.7,t:'B'},{h:'22:09',m:0.7,t:'P'}]},
+  '2026-04-10':{coef:28,mareas:[{h:'04:43',m:-0.7,t:'B'},{h:'10:59',m:0.5,t:'P'},{h:'17:06',m:-0.5,t:'B'},{h:'23:36',m:0.6,t:'P'}]},
+  '2026-04-11':{coef:37,mareas:[{h:'06:12',m:-0.6,t:'B'},{h:'12:40',m:0.5,t:'P'},{h:'18:37',m:-0.6,t:'B'}]},
+  '2026-04-12':{coef:50,mareas:[{h:'01:08',m:0.7,t:'P'},{h:'07:32',m:-0.8,t:'B'},{h:'13:57',m:0.7,t:'P'},{h:'19:50',m:-0.7,t:'B'}]},
+  '2026-04-13':{coef:65,mareas:[{h:'02:13',m:0.9,t:'P'},{h:'08:29',m:-1.0,t:'B'},{h:'14:48',m:0.9,t:'P'},{h:'20:42',m:-1.0,t:'B'}]},
+  '2026-04-14':{coef:80,mareas:[{h:'03:01',m:1.2,t:'P'},{h:'09:13',m:-1.3,t:'B'},{h:'15:29',m:1.2,t:'P'},{h:'21:25',m:-1.3,t:'B'}]},
+  '2026-04-15':{coef:92,mareas:[{h:'03:42',m:1.5,t:'P'},{h:'09:52',m:-1.6,t:'B'},{h:'16:06',m:1.5,t:'P'},{h:'22:05',m:-1.6,t:'B'}]},
+  '2026-04-16':{coef:101,mareas:[{h:'04:21',m:1.7,t:'P'},{h:'10:30',m:-1.8,t:'B'},{h:'16:43',m:1.7,t:'P'},{h:'22:44',m:-1.8,t:'B'}]},
+  '2026-04-17':{coef:105,mareas:[{h:'05:00',m:1.9,t:'P'},{h:'11:08',m:-2.0,t:'B'},{h:'17:21',m:1.9,t:'P'},{h:'23:25',m:-2.0,t:'B'}]},
+  '2026-04-18':{coef:103,mareas:[{h:'05:40',m:2.0,t:'P'},{h:'11:47',m:-2.0,t:'B'},{h:'18:00',m:2.0,t:'P'}]},
+  '2026-04-19':{coef:95,mareas:[{h:'00:07',m:-2.1,t:'B'},{h:'06:22',m:2.0,t:'P'},{h:'12:29',m:-2.0,t:'B'},{h:'18:42',m:2.0,t:'P'}]},
+  '2026-04-20':{coef:83,mareas:[{h:'00:51',m:-2.0,t:'B'},{h:'07:07',m:1.9,t:'P'},{h:'13:12',m:-1.8,t:'B'},{h:'19:27',m:1.9,t:'P'}]},
+  '2026-04-21':{coef:68,mareas:[{h:'01:39',m:-1.8,t:'B'},{h:'07:55',m:1.6,t:'P'},{h:'13:59',m:-1.6,t:'B'},{h:'20:16',m:1.7,t:'P'}]},
+  '2026-04-22':{coef:54,mareas:[{h:'02:32',m:-1.6,t:'B'},{h:'08:49',m:1.3,t:'P'},{h:'14:52',m:-1.3,t:'B'},{h:'21:13',m:1.4,t:'P'}]},
+  '2026-04-23':{coef:46,mareas:[{h:'03:34',m:-1.3,t:'B'},{h:'09:55',m:1.0,t:'P'},{h:'15:56',m:-1.0,t:'B'},{h:'22:23',m:1.2,t:'P'}]},
+  '2026-04-24':{coef:45,mareas:[{h:'04:50',m:-1.1,t:'B'},{h:'11:18',m:0.8,t:'P'},{h:'17:14',m:-0.9,t:'B'},{h:'23:48',m:1.1,t:'P'}]},
+  '2026-04-25':{coef:52,mareas:[{h:'06:16',m:-1.1,t:'B'},{h:'12:47',m:0.8,t:'P'},{h:'18:40',m:-0.8,t:'B'}]},
+  '2026-04-26':{coef:61,mareas:[{h:'01:11',m:1.1,t:'P'},{h:'07:34',m:-1.1,t:'B'},{h:'14:01',m:0.9,t:'P'},{h:'19:53',m:-1.0,t:'B'}]},
+  '2026-04-27':{coef:70,mareas:[{h:'02:19',m:1.2,t:'P'},{h:'08:35',m:-1.3,t:'B'},{h:'14:56',m:1.1,t:'P'},{h:'20:50',m:-1.2,t:'B'}]},
+  '2026-04-28':{coef:77,mareas:[{h:'03:11',m:1.4,t:'P'},{h:'09:22',m:-1.4,t:'B'},{h:'15:40',m:1.3,t:'P'},{h:'21:36',m:-1.3,t:'B'}]},
+  '2026-04-29':{coef:81,mareas:[{h:'03:55',m:1.5,t:'P'},{h:'10:01',m:-1.5,t:'B'},{h:'16:18',m:1.4,t:'P'},{h:'22:16',m:-1.5,t:'B'}]},
+  '2026-04-30':{coef:83,mareas:[{h:'04:33',m:1.6,t:'P'},{h:'10:36',m:-1.6,t:'B'},{h:'16:52',m:1.5,t:'P'},{h:'22:52',m:-1.6,t:'B'}]},
 };
 
-// ── Helpers ────────────────────────────────────────────────
-const DAYS   = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
-const MONTHS = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+const DAYS=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+const MONTHS=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
 
-function todayKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+// ── UTILIDADES ──────────────────────────────────────────────
+function todayKey(){const d=new Date();return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function dateStr(d){return`${d.getDate()} ${MONTHS[d.getMonth()]}`}
+function timeStr(d){return`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}
+function fmtISO(iso){try{const d=new Date(iso);return`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}catch{return iso||''}}
+function windDir(deg){return['N','NE','E','SE','S','SO','O','NO'][Math.round((deg||0)/45)%8]}
+function getKey(){return AEMET_KEY}
+
+function coefInfo(c){
+  if(c>=95)return{tipo:'MUY ALTA',color:'#ff6b35'};
+  if(c>=80)return{tipo:'ALTA',color:'#ffd700'};
+  if(c>=60)return{tipo:'MEDIA',color:'#00f5ff'};
+  if(c>=40)return{tipo:'BAJA',color:'#00e5cc'};
+  return{tipo:'MUY BAJA',color:'#88aacc'};
 }
-
-function dateKey(isoStr) { return isoStr.slice(0,10); }
-
-function getTideData(dayKey) {
-  return TIDES_DB[dayKey] || null;
+function seaState(wh){
+  if(wh<0.1)return{s:'Calma',b:0};
+  if(wh<0.5)return{s:'Marejadilla',b:1};
+  if(wh<1.25)return{s:'Marejada',b:3};
+  if(wh<2.5)return{s:'Marejada fuerte',b:5};
+  if(wh<4.0)return{s:'Mar de fondo',b:7};
+  return{s:'Mar gruesa',b:8};
 }
+function snowLevel(t){if(t<=0)return 0;return Math.min(Math.round((t/6.5)*1000),2600)}
 
-// Fallback: generar coeficiente por fase lunar si no hay datos en la BD
-function lunarCoef() {
-  const ref = new Date('2026-03-01').getTime();
-  const cycle = 29.53058867 * 86400000;
-  const phase = ((Date.now() - ref) % cycle) / cycle;
-  const coef = Math.round(70 + 50 * Math.abs(Math.cos(phase * 2 * Math.PI)));
-  return Math.min(120, Math.max(20, coef));
-}
-
-function coefInfo(c) {
-  if (c >= 95) return { tipo:'MUY ALTA', color:'#ff6b35' };
-  if (c >= 80) return { tipo:'ALTA',     color:'#ffd700' };
-  if (c >= 60) return { tipo:'MEDIA',    color:'#00f5ff' };
-  if (c >= 40) return { tipo:'BAJA',     color:'#00e5cc' };
-  return             { tipo:'MUY BAJA', color:'#88aacc' };
-}
-
-function seaState(wh) {
-  if (wh < 0.1)  return {s:'Calma',          b:0};
-  if (wh < 0.5)  return {s:'Marejadilla',     b:1};
-  if (wh < 1.25) return {s:'Marejada',        b:3};
-  if (wh < 2.5)  return {s:'Marejada fuerte', b:5};
-  if (wh < 4.0)  return {s:'Mar de fondo',    b:7};
-  return               {s:'Mar gruesa',       b:8};
-}
-
-function windDir(deg) {
-  return ['N','NE','E','SE','S','SO','O','NO'][Math.round((deg||0)/45)%8];
-}
-
-function snowLevel(t) {
-  if (t<=0) return 0;
-  return Math.min(Math.round((t/6.5)*1000), 2600);
-}
-
-// ── AEMET icons → emoji ────────────────────────────────────
-function aemetIcon(sky) {
-  // sky: 11=despejado, 12=poco nublado, 13=intervalos nubosos, 14=nublado, 15=muy nublado, 16=cubierto
-  // 23=intervalos nubosos con lluvia escasa, 24=nublado con lluvia, 26=lluvia, 71=nieve...
-  const n = parseInt(sky);
-  if (n===11) return '☀️';
-  if (n===12) return '🌤️';
-  if (n===13||n===14) return '⛅';
-  if (n===15||n===16) return '☁️';
-  if (n===17||n===33) return '🌫️';
-  if ([23,24,43,44,45,46].includes(n)) return '🌦️';
-  if ([26,36,27,37,61,62,63,64].includes(n)) return '🌧️';
-  if ([51,52,53,54,71,72,73,74,75,76].includes(n)) return '🌨️';
-  if ([81,82,83,84].includes(n)) return '⛈️';
-  return '🌡️';
-}
-
-function aemetDesc(sky) {
-  const m = {
-    11:'Despejado',12:'Poco nublado',13:'Intervalos nubosos',
-    14:'Nublado',15:'Muy nublado',16:'Cubierto',
-    17:'Niebla',23:'Chubascos débiles',24:'Chubascos',26:'Lluvia',
-    27:'Lluvia fuerte',33:'Bruma',36:'Lluvia y nieve',
-    51:'Nieve débil',52:'Nieve moderada',71:'Chubascos de nieve',
-    81:'Tormenta',82:'Tormenta fuerte'
-  };
-  return m[parseInt(sky)] || 'Variable';
-}
-
-// ── API Key AEMET (fija) ───────────────────────────────────
-const AEMET_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0dWVyb2p1bmNvamF2aWVyQGdtYWlsLmNvbSIsImp0aSI6ImE3YWM3MjE4LTYzZjYtNDJlZS05MDY1LTQ0ODhhMzY4MTNjYiIsImlzcyI6IkFFTUVUIiwiaWF0IjoxNzczMzE2MTAwLCJ1c2VySWQiOiJhN2FjNzIxOC02M2Y2LTQyZWUtOTA2NS00NDg4YTM2ODEzY2IiLCJyb2xlIjoiIn0.TwFrksLEvG7-0nFQlpv2zH3XskKy5AxJDEEaqjKHQp0';
-
-function getKey()  { return AEMET_KEY; }
-function setKey(k) { /* key fija, no se necesita guardar */ }
-
-function saveKey() {
-  setStatus('✓ Clave AEMET ya configurada','ok');
-  init();
-}
-
-function setStatus(msg, cls) {
-  const el = document.getElementById('keyStatus');
-  el.textContent = msg; el.className = 'apikey-status ' + (cls||'');
-}
-
-function loadWithoutAemet() {
-  setStatus('Usando Open-Meteo como fuente (sin clave AEMET)','ok');
-  renderWithFallback();
-}
-
-// ── AEMET fetch ────────────────────────────────────────────
-async function fetchAEMET(apiKey) {
-  // Paso 1: obtener URL de datos
-  const proxy = 'https://api.allorigins.win/get?url=';
-  const ep1 = `https://opendata.aemet.es/opendata/api/prediccion/especifica/municipio/diaria/${MUNICIPIO}?api_key=${apiKey}`;
-  const r1 = await fetch(proxy + encodeURIComponent(ep1));
-  const j1 = await r1.json();
-  const body1 = JSON.parse(j1.contents);
-  if (body1.estado !== 200) throw new Error(body1.descripcion || 'Error AEMET paso 1');
-
-  // Paso 2: obtener datos reales
-  const r2 = await fetch(proxy + encodeURIComponent(body1.datos));
-  const j2 = await r2.json();
-  return JSON.parse(j2.contents);
-}
-
-// ── Open-Meteo fetch (fallback) ────────────────────────────
-async function fetchOpenMeteo() {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}` +
-    `&current_weather=true` +
-    `&hourly=temperature_2m,relativehumidity_2m,apparent_temperature,precipitation,snow_depth,pressure_msl,visibility` +
-    `&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,winddirection_10m_dominant,snowfall_sum` +
-    `&wind_speed_unit=kmh&timezone=Europe%2FMadrid&forecast_days=7`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  return res.json();
-}
-
-async function fetchMarine() {
-  const url = `https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}` +
-    `&hourly=wave_height,wave_direction&daily=wave_height_max&timezone=Europe%2FMadrid&forecast_days=7`;
-  const res = await fetch(url);
-  return res.ok ? res.json() : null;
-}
-
-// ── RENDER con datos AEMET ─────────────────────────────────
-async function renderWithAEMET(aeData, marineData) {
-  const pred = aeData[0].prediccion.dia;
-  const now  = new Date();
-  const todayStr = todayKey();
-
-  // Día 0 = hoy
-  const hoy = pred[0];
-  const hora = now.getHours();
-
-  // ── Helpers de parseo AEMET ──────────────────────────────
-  // La API diaria devuelve periodos como "00-06","06-12","12-24","00-24"
-  // o periodos horarios "0","1"..."23". Elegimos el que mejor cubre la hora actual.
-  function bestPeriodo(arr, horaActual) {
-    if (!Array.isArray(arr) || arr.length === 0) return null;
-    // Filtrar entradas con value no vacío
-    const validos = arr.filter(x => x.value !== '' && x.value !== null && x.value !== undefined);
-    if (validos.length === 0) return arr[0];
-    // Si los periodos son rangos tipo "00-06"
-    if (validos[0].periodo && validos[0].periodo.includes('-')) {
-      const dentro = validos.filter(x => {
-        const [ini, fin] = x.periodo.split('-').map(Number);
-        return horaActual >= ini && horaActual < (fin === 0 ? 24 : fin);
-      });
-      if (dentro.length > 0) return dentro[dentro.length - 1];
-      return validos[validos.length - 1];
-    }
-    // Si los periodos son horas numéricas "0","1",..."23"
-    return validos.reduce((a, b) => {
-      const da = Math.abs(parseInt(a.periodo || a.hora || 0) - horaActual);
-      const db = Math.abs(parseInt(b.periodo || b.hora || 0) - horaActual);
-      return db < da ? b : a;
-    });
+function bestPeriodo(arr,hora){
+  if(!Array.isArray(arr)||arr.length===0)return null;
+  const v=arr.filter(x=>x.value!==''&&x.value!=null);
+  if(!v.length)return arr[0];
+  if(v[0].periodo&&v[0].periodo.includes('-')){
+    const d=v.filter(x=>{const[a,b]=x.periodo.split('-').map(Number);return hora>=a&&hora<(b===0?24:b)});
+    return d.length?d[d.length-1]:v[v.length-1];
   }
+  return v.reduce((a,b)=>Math.abs(parseInt(b.periodo||b.hora||0)-hora)<Math.abs(parseInt(a.periodo||a.hora||0)-hora)?b:a);
+}
 
-  let tempActual = null, condActual = '13', humActual = 70, vientoActual = 20, dirActual = 'N', lluviaHoy = 0;
-  let tMaxHoy = null, tMinHoy = null;
+function aemetIcon(code,day=1){
+  const n=parseInt(code);const d=day;
+  if(n===11)return d?'☀️':'🌙';if(n===12)return'🌤️';if(n<=14)return'⛅';if(n<=16)return'☁️';
+  if([17,33].includes(n))return'🌫️';if([23,24,43,44,45,46].includes(n))return'🌦️';
+  if([26,27,36,37,61,62,63,64].includes(n))return'🌧️';
+  if([51,52,53,54,71,72,73,74,75,76].includes(n))return'🌨️';
+  if([81,82,83,84].includes(n))return'⛈️';return'🌡️';
+}
+function aemetDesc(code){
+  const m={11:'Despejado',12:'Poco nublado',13:'Intervalos nubosos',14:'Nublado',15:'Muy nublado',16:'Cubierto',
+    17:'Niebla',23:'Chubascos débiles',24:'Chubascos',26:'Lluvia',27:'Lluvia fuerte',33:'Bruma',
+    36:'Lluvia y nieve',51:'Nieve débil',52:'Nieve moderada',71:'Chubascos de nieve',81:'Tormenta',82:'Tormenta fuerte'};
+  return m[parseInt(code)]||'Variable';
+}
 
-  try {
-    // Temperatura máxima y mínima del día (siempre disponibles en diaria)
-    tMaxHoy = parseFloat(hoy.temperatura?.maxima);
-    tMinHoy = parseFloat(hoy.temperatura?.minima);
+// ── AEMET fetch genérico ──────────────────────────────────
+async function aemetFetch(endpoint){
+  const r1=await fetch(PROXY+encodeURIComponent(`https://opendata.aemet.es/opendata/api${endpoint}?api_key=${getKey()}`));
+  const j1=await r1.json();const b1=JSON.parse(j1.contents);
+  if(b1.estado!==200)throw new Error(b1.descripcion||`Estado ${b1.estado}`);
+  const r2=await fetch(PROXY+encodeURIComponent(b1.datos));
+  const j2=await r2.json();
+  try{return JSON.parse(j2.contents)}catch{return j2.contents}
+}
+async function aemetFetchText(endpoint){
+  const r1=await fetch(PROXY+encodeURIComponent(`https://opendata.aemet.es/opendata/api${endpoint}?api_key=${getKey()}`));
+  const j1=await r1.json();const b1=JSON.parse(j1.contents);
+  if(b1.estado!==200)throw new Error(b1.descripcion||`Estado ${b1.estado}`);
+  const r2=await fetch(PROXY+encodeURIComponent(b1.datos));
+  const j2=await r2.json();return j2.contents;
+}
+async function aemetFetchImg(endpoint){
+  const r1=await fetch(PROXY+encodeURIComponent(`https://opendata.aemet.es/opendata/api${endpoint}?api_key=${getKey()}`));
+  const j1=await r1.json();const b1=JSON.parse(j1.contents);
+  if(b1.estado!==200)throw new Error(b1.descripcion||`Estado ${b1.estado}`);
+  return b1.datos; // URL directa de imagen
+}
+async function fetchOpenMeteo(){
+  const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current_weather=true&hourly=temperature_2m,relativehumidity_2m,apparent_temperature,precipitation,snow_depth,pressure_msl,visibility&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,winddirection_10m_dominant,snowfall_sum&wind_speed_unit=kmh&timezone=Europe%2FMadrid&forecast_days=7`;
+  const r=await fetch(url);if(!r.ok)throw new Error('OM HTTP '+r.status);return r.json();
+}
+async function fetchMarine(){
+  const r=await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&hourly=wave_height,wave_direction&daily=wave_height_max&timezone=Europe%2FMadrid&forecast_days=7`);
+  return r.ok?r.json():null;
+}
 
-    // Temperatura actual: interpolación lineal entre min y max según la hora
-    // Mínimo ~6h, máximo ~14h → curva senoidal simple
-    if (!isNaN(tMaxHoy) && !isNaN(tMinHoy)) {
-      const h = hora;
-      // Factor 0→1 según hora del día (mínimo a las 6h, máximo a las 14h)
-      const factor = Math.max(0, Math.sin(((h - 6) / 16) * Math.PI));
-      tempActual = tMinHoy + (tMaxHoy - tMinHoy) * factor;
-    }
+// ── TABS ───────────────────────────────────────────────────
+let tabLoaded={};
+function showTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const idx=['tab-actual','tab-horaria','tab-diaria','tab-obs','tab-graficos','tab-maritima','tab-montana','tab-clim','tab-radar','tab-mapas'].indexOf(id);
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+  if(!tabLoaded[id])loadTab(id);
+  if(id==='tab-radar'&&!window._radarInit){window._radarInit=true;setTimeout(initRadar,300)}
+}
 
-    // Estado del cielo — periodos tipo "00-06","06-12","12-24"
-    const cieloArr = hoy.estadoCielo;
-    if (Array.isArray(cieloArr)) {
-      const best = bestPeriodo(cieloArr, hora);
-      if (best && best.value && best.value !== '') condActual = best.value;
-    }
+async function loadTab(id){
+  tabLoaded[id]=true;
+  if(id==='tab-maritima')loadMaritima();
+  else if(id==='tab-montana')loadMontana();
+  else if(id==='tab-clim')loadClimatologia();
+  else if(id==='tab-mapas')loadMapas();
+  else if(id==='tab-obs')loadObservacion();
+  else if(id==='tab-graficos')loadGraficos();
+}
 
-    // Viento — misma estructura de periodos
-    const vArr = hoy.viento;
-    if (Array.isArray(vArr)) {
-      const best = bestPeriodo(vArr, hora);
-      if (best) {
-        const vel = parseFloat(best.velocidad);
-        if (!isNaN(vel) && vel > 0) vientoActual = vel;
-        if (best.direccion && best.direccion !== '') dirActual = best.direccion;
-      }
-    }
-
-    // Probabilidad de precipitación (usamos como indicador de lluvia)
-    const probArr = hoy.probPrecipitacion;
-    if (Array.isArray(probArr)) {
-      const best = bestPeriodo(probArr, hora);
-      if (best) lluviaHoy = parseFloat(best.value) || 0;
-    }
-
-    // Humedad relativa
-    const humArr = hoy.humedadRelativa;
-    if (Array.isArray(humArr)) {
-      const best = bestPeriodo(humArr, hora);
-      if (best && best.value !== '') humActual = parseInt(best.value) || 70;
-    }
-  } catch(e) { console.warn('Parse AEMET:', e); }
-
-  // Si la temperatura actual aún no es válida, usar la media de máx/mín
-  if (tempActual === null || isNaN(tempActual)) {
-    tempActual = (!isNaN(tMaxHoy) && !isNaN(tMinHoy))
-      ? (tMaxHoy + tMinHoy) / 2
-      : (!isNaN(tMaxHoy) ? tMaxHoy : 15);
+// ════════════════════════════════════════════════════════════
+//  INIT PRINCIPAL
+// ════════════════════════════════════════════════════════════
+async function init(){
+  try{
+    const[aeData,omData,marineData,alertas]=await Promise.all([
+      aemetFetch(`/prediccion/especifica/municipio/diaria/${MUNICIPIO}`),
+      fetchOpenMeteo(),fetchMarine(),fetchAlertas()
+    ]);
+    renderAlertas(alertas,new Date());
+    renderActual(aeData,omData,marineData);
+    renderDiaria(aeData,omData);
+    loadHoraria();
+  }catch(err){
+    console.error('Init error:',err);
+    renderAlertasFallback();
+    try{const omData=await fetchOpenMeteo();const marine=await fetchMarine();renderActualFallback(omData,marine)}
+    catch(e2){document.getElementById('current-card').innerHTML=`<div class="error-msg" style="margin:20px">⚠️ ${e2.message}</div>`}
   }
+}
 
-  // Cota de nieve: se calcula con la temperatura MÁXIMA del día (referencia correcta)
-  const tempParaNieve = (!isNaN(tMaxHoy) && tMaxHoy !== null) ? tMaxHoy : tempActual;
-  const snowLvl = snowLevel(tempParaNieve);
-  const snowPct = Math.min(100, Math.max(1, (snowLvl/2600)*100));
-
-  // Marea hoy
-  const tideToday = getTideData(todayStr);
-  const coef = tideToday ? tideToday.coef : lunarCoef();
-  const cInfo = coefInfo(coef);
-
-  // Estado del mar
-  let waveH = 1.0, waveDir = 'NO';
-  if (marineData?.hourly) {
-    const hIdx = marineData.hourly.time.findIndex(t => t.startsWith(now.toISOString().slice(0,13)));
-    if (hIdx>=0 && marineData.hourly.wave_height[hIdx]!=null) {
-      waveH    = marineData.hourly.wave_height[hIdx];
-      waveDir  = windDir(marineData.hourly.wave_direction?.[hIdx]||315);
+// ════════════════════════════════════════════════════════════
+//  TIEMPO ACTUAL
+// ════════════════════════════════════════════════════════════
+function renderActual(aeData,omData,marineData){
+  const pred=aeData[0].prediccion.dia;const hoy=pred[0];
+  const now=new Date();const hora=now.getHours();
+  let tempActual=null,condActual='13',humActual=70,vientoActual=20,dirActual='N',tMaxHoy=null,tMinHoy=null,lluviaHoy=0;
+  try{
+    tMaxHoy=parseFloat(hoy.temperatura?.maxima);tMinHoy=parseFloat(hoy.temperatura?.minima);
+    if(!isNaN(tMaxHoy)&&!isNaN(tMinHoy)){
+      const f=Math.max(0,Math.sin(((hora-6)/16)*Math.PI));
+      tempActual=tMinHoy+(tMaxHoy-tMinHoy)*f;
     }
-  }
-  const sea = seaState(waveH);
-  const time_s = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-
-  let html = `
-    <div class="current-section">
-      <div class="current-grid">
-        <div class="temp-display">
-          <div class="temp-val">${Math.round(tempActual)}<span class="temp-unit">°C</span></div>
-          <div class="cur-desc">${aemetIcon(condActual)} ${aemetDesc(condActual)}</div>
-        </div>
-        <div class="cdivider"></div>
-        <div class="cur-stats">
-          <div class="stat-item"><span class="stat-label">💨 Viento</span><span class="stat-val">${Math.round(vientoActual)}<span class="stat-unit">km/h</span></span></div>
-          <div class="stat-item"><span class="stat-label">🧭 Dirección</span><span class="stat-val">${typeof dirActual==='string'?dirActual:windDir(dirActual)}</span></div>
-          <div class="stat-item"><span class="stat-label">💧 Humedad</span><span class="stat-val">${humActual}<span class="stat-unit">%</span></span></div>
-          <div class="stat-item"><span class="stat-label">🌧️ Prob. lluvia</span><span class="stat-val">${Math.round(lluviaHoy)}<span class="stat-unit">%</span></span></div>
-          <div class="stat-item"><span class="stat-label">🔺 Máx. hoy</span><span class="stat-val">${!isNaN(tMaxHoy)?Math.round(tMaxHoy)+'°':'—'}</span></div>
-          <div class="stat-item"><span class="stat-label">🔻 Mín. hoy</span><span class="stat-val">${!isNaN(tMinHoy)?Math.round(tMinHoy)+'°':'—'}</span></div>
-        </div>
+    const cArr=hoy.estadoCielo;if(Array.isArray(cArr)){const b=bestPeriodo(cArr,hora);if(b&&b.value)condActual=b.value}
+    const vArr=hoy.viento;if(Array.isArray(vArr)){const b=bestPeriodo(vArr,hora);if(b){const v=parseFloat(b.velocidad);if(!isNaN(v)&&v>0)vientoActual=v;if(b.direccion)dirActual=b.direccion}}
+    const pArr=hoy.probPrecipitacion;if(Array.isArray(pArr)){const b=bestPeriodo(pArr,hora);if(b)lluviaHoy=parseFloat(b.value)||0}
+    const hArr=hoy.humedadRelativa;if(Array.isArray(hArr)){const b=bestPeriodo(hArr,hora);if(b&&b.value)humActual=parseInt(b.value)||70}
+  }catch(e){console.warn('Parse AEMET:',e)}
+  if(tempActual===null||isNaN(tempActual))tempActual=(!isNaN(tMaxHoy)&&!isNaN(tMinHoy))?(tMaxHoy+tMinHoy)/2:(tMaxHoy||15);
+  const snowLvl=snowLevel(!isNaN(tMaxHoy)?tMaxHoy:tempActual);
+  const snowPct=Math.min(100,Math.max(1,(snowLvl/2600)*100));
+  document.getElementById('snow-val-txt').textContent=snowLvl>0?snowLvl.toLocaleString('es')+' m':'A nivel del mar';
+  setTimeout(()=>{const f=document.getElementById('snowFill');if(f)f.style.width=snowPct+'%'},300);
+  // Presión y sensación de Open-Meteo horario
+  const h=omData.hourly;const hi=h.time.findIndex(t=>t.startsWith(now.toISOString().slice(0,13)));const hi_=hi>=0?hi:0;
+  const pres=Math.round(h.pressure_msl?.[hi_]||1013);
+  const feels=Math.round(h.apparent_temperature?.[hi_]||tempActual);
+  document.getElementById('current-card').innerHTML=`
+    <div class="current-grid">
+      <div class="temp-display">
+        <div class="temp-val">${Math.round(tempActual)}<span class="temp-unit">°C</span></div>
+        <div class="cur-desc">${aemetIcon(condActual,now.getHours()>=7&&now.getHours()<21?1:0)} ${aemetDesc(condActual)}</div>
       </div>
-      <div class="update-bar">
-        <span><span class="live-dot"></span>EN VIVO · AEMET OFFICIAL · AUTO-ACT. 30 MIN</span>
-        <span>ÚLT. ACT: ${time_s}</span>
+      <div class="cdivider"></div>
+      <div class="cur-stats">
+        <div class="stat-item"><span class="stat-label">💨 Viento</span><span class="stat-val">${Math.round(vientoActual)}<span class="stat-unit">km/h</span></span></div>
+        <div class="stat-item"><span class="stat-label">🧭 Dirección</span><span class="stat-val">${dirActual}</span></div>
+        <div class="stat-item"><span class="stat-label">💧 Humedad</span><span class="stat-val">${humActual}<span class="stat-unit">%</span></span></div>
+        <div class="stat-item"><span class="stat-label">🌧️ Prob. lluvia</span><span class="stat-val">${Math.round(lluviaHoy)}<span class="stat-unit">%</span></span></div>
+        <div class="stat-item"><span class="stat-label">🔵 Presión</span><span class="stat-val">${pres}<span class="stat-unit">hPa</span></span></div>
+        <div class="stat-item"><span class="stat-label">🌡️ Sensación</span><span class="stat-val">${feels}<span class="stat-unit">°C</span></span></div>
+        <div class="stat-item"><span class="stat-label">🔺 Máx. hoy</span><span class="stat-val">${!isNaN(tMaxHoy)?Math.round(tMaxHoy)+'°':'—'}</span></div>
+        <div class="stat-item"><span class="stat-label">🔻 Mín. hoy</span><span class="stat-val">${!isNaN(tMinHoy)?Math.round(tMinHoy)+'°':'—'}</span></div>
       </div>
     </div>
-
-    <div class="section-title">❄️ Cota de nieve</div>
-    <div class="snow-bar">
-      <div class="snow-icon">🏔️</div>
-      <div class="snow-info">
-        <div class="snow-lbl">Altitud estimada cota de nieve</div>
-        <div class="snow-val">${snowLvl>0 ? snowLvl.toLocaleString('es')+' m' : 'A nivel del mar'}</div>
-      </div>
-      <div class="snow-track"><div class="snow-fill" id="snowFill"></div></div>
-    </div>
-
-    <div class="section-title">📅 Previsión 7 días · AEMET</div>
-    <div class="forecast-grid">
-  `;
-
-  for (let i=0; i<Math.min(7,pred.length); i++) {
-    const dObj   = pred[i];
-    const dDate  = new Date(dObj.fecha);
-    const dKey   = dObj.fecha.slice(0,10);
-    const dName  = i===0?'HOY':i===1?'MAÑANA':DAYS[dDate.getDay()];
-    const dStr   = `${dDate.getDate()} ${MONTHS[dDate.getMonth()]}`;
-    const tMax   = parseFloat(dObj.temperatura?.maxima);
-    const tMin   = parseFloat(dObj.temperatura?.minima);
-    // Viento max del día
-    const vArr2  = dObj.viento;
-    const vMax   = Array.isArray(vArr2)
-      ? Math.max(...vArr2.map(v=>parseFloat(v.velocidad||0)).filter(x=>!isNaN(x)&&x>0), 0)
-      : 0;
-    // Dirección del viento predominante (periodo 00-24 o el último disponible)
-    const vDirObj = Array.isArray(vArr2)
-      ? (vArr2.find(v=>v.periodo==='00-24')||vArr2.find(v=>v.direccion&&v.direccion!=='')||vArr2[0])
-      : null;
-    const vDirStr = vDirObj?.direccion || '';
-    // Probabilidad lluvia
-    const probArr2 = dObj.probPrecipitacion;
-    const probMax  = Array.isArray(probArr2)
-      ? Math.max(...probArr2.map(p=>parseFloat(p.value||0)).filter(x=>!isNaN(x)), 0)
-      : 0;
-    // Cielo: tomar periodo diurno 12-24 o 00-24
-    const skArr  = dObj.estadoCielo;
-    const skBest = Array.isArray(skArr)
-      ? (skArr.find(s=>s.periodo==='12-24'&&s.value!=='')||
-         skArr.find(s=>s.periodo==='00-24'&&s.value!=='')||
-         skArr.find(s=>s.value&&s.value!=='')||
-         skArr[0]||{value:'13'})
-      : {value:'13'};
-    const skCode = skBest?.value || '13';
-    const tideD  = getTideData(dKey);
-    const coefD  = tideD ? tideD.coef : null;
-    const snowD  = snowLevel(!isNaN(tMax) ? tMax : 15);
-    html += `
-      <div class="fc-card ${i===0?'today':''}">
-        <div class="fc-day">${dName}<br><small style="opacity:.55;font-size:.54rem">${dStr}</small></div>
-        <div class="fc-icon">${aemetIcon(skCode)}</div>
-        <div class="fc-tmax">${!isNaN(tMax)?Math.round(tMax)+'°':'—'}</div>
-        <div class="fc-tmin">${!isNaN(tMin)?Math.round(tMin)+'°':'—'}</div>
-        <div class="fc-detail">
-          <div>🌧️ <span>${Math.round(probMax)}%</span></div>
-          <div>💨 <span>${Math.round(vMax)}km/h${vDirStr?' '+vDirStr:''}</span></div>
-          <div>❄️ <span>${snowD>0?snowD.toLocaleString('es')+'m':'<100m'}</span></div>
-          ${coefD ? `<div>🌊 <span>Coef. ${coefD}</span></div>` : ''}
-        </div>
-      </div>`;
-  }
-
-  html += `</div>`;
-
-  // SEA
-  html += buildSeaSection(coef, cInfo, waveH, waveDir, sea, tideToday);
-
-  document.getElementById('main-content').innerHTML = html;
-  setTimeout(()=>{ const f=document.getElementById('snowFill'); if(f) f.style.width=snowPct+'%'; }, 200);
-}
-
-// ── RENDER con Open-Meteo ──────────────────────────────────
-async function renderWithFallback() {
-  const [omData, marineData] = await Promise.all([fetchOpenMeteo(), fetchMarine()]);
-  const cw    = omData.current_weather;
-  const daily = omData.daily;
-  const h     = omData.hourly;
-  const now   = new Date();
-  const todayStr = todayKey();
-  const hi    = h.time.findIndex(t=>t.startsWith(now.toISOString().slice(0,13)));
-  const hi_   = hi>=0?hi:0;
-
-  const hum   = Math.round(h.relativehumidity_2m?.[hi_]??0);
-  const feels = Math.round(h.apparent_temperature?.[hi_]??cw.temperature);
-  const snowLvl = snowLevel(cw.temperature);
-  const snowPct = Math.min(100,Math.max(1,(snowLvl/2600)*100));
-
-  const tideToday = getTideData(todayStr);
-  const coef = tideToday ? tideToday.coef : lunarCoef();
-  const cInfo = coefInfo(coef);
-
-  let waveH=1.0, waveDir='NO';
-  if(marineData?.hourly){
-    const mi=marineData.hourly.time.findIndex(t=>t.startsWith(now.toISOString().slice(0,13)));
-    if(mi>=0&&marineData.hourly.wave_height[mi]!=null){
-      waveH=marineData.hourly.wave_height[mi];
-      waveDir=windDir(marineData.hourly.wave_direction?.[mi]||315);
-    }
-  }
-  const sea=seaState(waveH);
-  const time_s=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-
-  function omIcon(code,day=1){
-    const m={0:day?'☀️':'🌙',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'❄️',80:'🌦️',81:'🌧️',82:'⛈️',95:'⛈️',96:'⛈️',99:'⛈️'};
-    return m[code]||'🌡️';
-  }
-  function omDesc(code){
-    const d={0:'Despejado',1:'Mayormente despejado',2:'Parcialmente nublado',3:'Nublado',45:'Niebla',51:'Llovizna ligera',61:'Lluvia ligera',63:'Lluvia moderada',65:'Lluvia fuerte',71:'Nieve ligera',80:'Chubascos débiles',81:'Chubascos moderados',95:'Tormenta'};
-    return d[code]||'Variable';
-  }
-
-  let html = `
-    <div class="warn-msg">⚠️ Usando Open-Meteo como fuente. Para datos oficiales de AEMET introduce tu API Key gratuita arriba.</div>
-    <div class="current-section">
-      <div class="current-grid">
-        <div class="temp-display">
-          <div class="temp-val">${Math.round(cw.temperature)}<span class="temp-unit">°C</span></div>
-          <div class="cur-desc">${omIcon(cw.weathercode,cw.is_day)} ${omDesc(cw.weathercode)}</div>
-        </div>
-        <div class="cdivider"></div>
-        <div class="cur-stats">
-          <div class="stat-item"><span class="stat-label">💨 Viento</span><span class="stat-val">${Math.round(cw.windspeed)}<span class="stat-unit">km/h</span></span></div>
-          <div class="stat-item"><span class="stat-label">🧭 Dirección</span><span class="stat-val">${windDir(cw.winddirection)}</span></div>
-          <div class="stat-item"><span class="stat-label">💧 Humedad</span><span class="stat-val">${hum}<span class="stat-unit">%</span></span></div>
-          <div class="stat-item"><span class="stat-label">🌧️ Lluvia hoy</span><span class="stat-val">${(daily.precipitation_sum[0]||0).toFixed(1)}<span class="stat-unit">mm</span></span></div>
-          <div class="stat-item"><span class="stat-label">🌡️ Sensación</span><span class="stat-val">${feels}<span class="stat-unit">°C</span></span></div>
-          <div class="stat-item"><span class="stat-label">🔺🔻 Máx/Mín</span><span class="stat-val" style="font-size:.9rem">${Math.round(daily.temperature_2m_max[0])}°/${Math.round(daily.temperature_2m_min[0])}°</span></div>
-        </div>
-      </div>
-      <div class="update-bar">
-        <span><span class="live-dot"></span>EN VIVO · OPEN-METEO · AUTO-ACT. 30 MIN</span>
-        <span>ÚLT. ACT: ${time_s}</span>
-      </div>
-    </div>
-
-    <div class="section-title">❄️ Cota de nieve</div>
-    <div class="snow-bar">
-      <div class="snow-icon">🏔️</div>
-      <div class="snow-info">
-        <div class="snow-lbl">Altitud estimada cota de nieve</div>
-        <div class="snow-val">${snowLvl>0?snowLvl.toLocaleString('es')+' m':'A nivel del mar'}</div>
-      </div>
-      <div class="snow-track"><div class="snow-fill" id="snowFill"></div></div>
-    </div>
-
-    <div class="section-title">📅 Previsión 7 días</div>
-    <div class="forecast-grid">
-  `;
-
-  for(let i=0;i<7;i++){
-    const date=new Date(daily.time[i]+'T12:00:00');
-    const dName=i===0?'HOY':i===1?'MAÑANA':DAYS[date.getDay()];
-    const dStr=`${date.getDate()} ${MONTHS[date.getMonth()]}`;
-    const dKey=daily.time[i];
-    const tMax=Math.round(daily.temperature_2m_max[i]);
-    const tMin=Math.round(daily.temperature_2m_min[i]);
-    const rain=(daily.precipitation_sum[i]||0).toFixed(1);
-    const wind=Math.round(daily.windspeed_10m_max[i]);
-    const dir=windDir(daily.winddirection_10m_dominant[i]);
-    const snowD=snowLevel(tMax);
-    const tideD=getTideData(dKey);
-    const coefD=tideD?tideD.coef:null;
-    html+=`
-      <div class="fc-card ${i===0?'today':''}">
-        <div class="fc-day">${dName}<br><small style="opacity:.55;font-size:.54rem">${dStr}</small></div>
-        <div class="fc-icon">${omIcon(daily.weathercode[i],1)}</div>
-        <div class="fc-tmax">${tMax}°</div>
-        <div class="fc-tmin">${tMin}°</div>
-        <div class="fc-detail">
-          <div>🌧️ <span>${rain}mm</span></div>
-          <div>💨 <span>${wind}km/h ${dir}</span></div>
-          <div>❄️ <span>${snowD>0?snowD.toLocaleString('es')+'m':'<100m'}</span></div>
-          ${coefD?`<div>🌊 <span>Coef. ${coefD}</span></div>`:''}
-        </div>
-      </div>`;
-  }
-
-  html += `</div>`;
-  html += buildSeaSection(coef, cInfo, waveH, waveDir, sea, tideToday);
-
-  document.getElementById('main-content').innerHTML = html;
-  setTimeout(()=>{ const f=document.getElementById('snowFill'); if(f) f.style.width=snowPct+'%'; }, 200);
-}
-
-// ── Sección del mar (compartida) ───────────────────────────
-function buildSeaSection(coef, cInfo, waveH, waveDir, sea, tideToday) {
-  const tideMareStr = tideToday
-    ? `<div class="tides-lbl">⏱ Horario de mareas · Hoy</div>
-       <div class="tides-row">
-         ${tideToday.mareas.map(m=>`
-           <div class="tide-item">
-             <div class="tide-type">${m.t==='P'?'⬆️':'⬇️'}</div>
-             <div>
-               <div class="t-label">${m.t==='P'?'Pleamar':'Bajamar'}</div>
-               <div class="t-time">${m.h}</div>
-               <div class="t-h">${m.m>0?'+':''}${m.m} m</div>
-             </div>
-           </div>`).join('')}
-       </div>`
-    : `<div class="warn-msg" style="margin-top:12px">📋 No hay datos de mareas en la base de datos para hoy. Consulta el almanaque oficial.</div>`;
-
-  return `
-    <div class="section-title">🌊 Estado del mar · Mareas</div>
-    <div class="sea-section">
-      <div class="sea-grid">
-        <div class="sea-stat">
-          <span class="stat-label">Estado del mar</span>
-          <div class="sea-stat-val" style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;color:var(--teal)">${sea.s}</div>
-          <small style="color:rgba(0,229,204,.45);font-size:.7rem">Beaufort ${sea.b}</small>
-        </div>
-        <div class="sea-stat">
-          <span class="stat-label">Altura de ola</span>
-          <div class="stat-val sea-val">${waveH.toFixed(1)}<span class="stat-unit">m</span></div>
-          <small style="color:rgba(0,229,204,.45);font-size:.7rem">Procedencia ${waveDir}</small>
-        </div>
-        <div class="sea-stat">
-          <span class="stat-label">Coeficiente de marea</span>
-          <div style="font-family:'Orbitron',monospace;font-size:2rem;font-weight:700;color:${cInfo.color}">${coef}</div>
-          <div class="coef-badge" style="border:1px solid ${cInfo.color}44;background:${cInfo.color}11;color:${cInfo.color}">
-            🌊 MAREA ${cInfo.tipo}
-          </div>
-        </div>
-      </div>
-      ${tideMareStr}
-      <div class="sea-wave"></div>
+    <div class="update-bar">
+      <span><span class="live-dot"></span>EN VIVO · AEMET OFICIAL · AUTO-ACT. 30 MIN</span>
+      <span>ÚLT. ACT: ${timeStr(now)}</span>
     </div>`;
+  // Sea
+  let waveH=1.0,waveDir='NO';
+  if(marineData?.hourly){const mi=marineData.hourly.time.findIndex(t=>t.startsWith(now.toISOString().slice(0,13)));
+    if(mi>=0&&marineData.hourly.wave_height[mi]!=null){waveH=marineData.hourly.wave_height[mi];waveDir=windDir(marineData.hourly.wave_direction?.[mi]||315)}}
+  const sea=seaState(waveH);
+  const todayStr=todayKey();const tideToday=TIDES_DB[todayStr];
+  const coef=tideToday?tideToday.coef:lunarCoef();const cInfo=coefInfo(coef);
+  document.getElementById('sea-panel').innerHTML=buildSeaSection(coef,cInfo,waveH,waveDir,sea,tideToday);
 }
 
-// ── ALERTAS AEMET ──────────────────────────────────────────
-// Zona AEMET para Asturias costera: "0" → código CAP zona Asturias = "33"
-// Endpoint: /api/avisos_cap/archivo/nacional/
-async function fetchAlertas(apiKey) {
-  const proxy = 'https://api.allorigins.win/get?url=';
-  // Avisos CAP para Asturias (cod. provincia 33)
-  const ep = `https://opendata.aemet.es/opendata/api/avisos_cap/ultimoelaborado/area/33?api_key=${apiKey}`;
-  try {
-    const r1 = await fetch(proxy + encodeURIComponent(ep));
-    const j1 = await r1.json();
-    const body1 = JSON.parse(j1.contents);
-    if (body1.estado !== 200) return [];
-    const r2 = await fetch(proxy + encodeURIComponent(body1.datos));
-    const j2 = await r2.json();
-    // Los datos vienen en formato CAP/XML o JSON según endpoint
-    // Si viene como texto XML lo parseamos, si es JSON directo lo usamos
-    const raw = j2.contents;
-    if (!raw) return [];
-    // Intentar parsear como JSON array
-    try {
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : [parsed];
-    } catch {
-      // Parsear XML CAP
-      return parseCapXML(raw);
-    }
-  } catch(e) {
-    console.warn('Alertas AEMET no disponibles:', e);
-    return [];
+function renderActualFallback(omData,marineData){
+  const cw=omData.current_weather;const now=new Date();
+  const h=omData.hourly;const hi=h.time.findIndex(t=>t.startsWith(now.toISOString().slice(0,13)));const hi_=hi>=0?hi:0;
+  const hum=Math.round(h.relativehumidity_2m?.[hi_]||0);const pres=Math.round(h.pressure_msl?.[hi_]||1013);
+  const feels=Math.round(h.apparent_temperature?.[hi_]||cw.temperature);
+  const snowLvl=snowLevel(cw.temperature);const snowPct=Math.min(100,Math.max(1,(snowLvl/2600)*100));
+  document.getElementById('snow-val-txt').textContent=snowLvl>0?snowLvl.toLocaleString('es')+' m':'A nivel del mar';
+  setTimeout(()=>{const f=document.getElementById('snowFill');if(f)f.style.width=snowPct+'%'},300);
+  function omIcon(c,d=1){const m={0:d?'☀️':'🌙',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',51:'🌦️',61:'🌧️',63:'🌧️',71:'🌨️',80:'🌦️',95:'⛈️'};return m[c]||'🌡️'}
+  document.getElementById('current-card').innerHTML=`
+    <div class="warn-msg" style="margin:16px 16px 0">⚠️ Usando Open-Meteo (fallback)</div>
+    <div class="current-grid">
+      <div class="temp-display"><div class="temp-val">${Math.round(cw.temperature)}<span class="temp-unit">°C</span></div><div class="cur-desc">${omIcon(cw.weathercode,cw.is_day)} Variable</div></div>
+      <div class="cdivider"></div>
+      <div class="cur-stats">
+        <div class="stat-item"><span class="stat-label">💨 Viento</span><span class="stat-val">${Math.round(cw.windspeed)}<span class="stat-unit">km/h</span></span></div>
+        <div class="stat-item"><span class="stat-label">🧭 Dirección</span><span class="stat-val">${windDir(cw.winddirection)}</span></div>
+        <div class="stat-item"><span class="stat-label">💧 Humedad</span><span class="stat-val">${hum}<span class="stat-unit">%</span></span></div>
+        <div class="stat-item"><span class="stat-label">🔵 Presión</span><span class="stat-val">${pres}<span class="stat-unit">hPa</span></span></div>
+        <div class="stat-item"><span class="stat-label">🌡️ Sensación</span><span class="stat-val">${feels}<span class="stat-unit">°C</span></span></div>
+        <div class="stat-item"><span class="stat-label">🔺🔻 Máx/Mín</span><span class="stat-val" style="font-size:.85rem">${Math.round(omData.daily.temperature_2m_max[0])}°/${Math.round(omData.daily.temperature_2m_min[0])}°</span></div>
+      </div>
+    </div>
+    <div class="update-bar"><span><span class="live-dot"></span>EN VIVO · OPEN-METEO</span><span>ÚLT. ACT: ${timeStr(now)}</span></div>`;
+  let waveH=1.0,waveDir='NO';
+  if(marineData?.hourly){const mi=marineData.hourly.time.findIndex(t=>t.startsWith(now.toISOString().slice(0,13)));
+    if(mi>=0&&marineData.hourly.wave_height[mi]!=null){waveH=marineData.hourly.wave_height[mi];waveDir=windDir(marineData.hourly.wave_direction?.[mi]||315)}}
+  const sea=seaState(waveH);const todayStr=todayKey();const tideToday=TIDES_DB[todayStr];
+  const coef=tideToday?tideToday.coef:lunarCoef();const cInfo=coefInfo(coef);
+  document.getElementById('sea-panel').innerHTML=buildSeaSection(coef,cInfo,waveH,waveDir,sea,tideToday);
+  renderDiariaFallback(omData);
+}
+
+// ── MAREAS helper ──────────────────────────────────────────
+function lunarCoef(){const ref=new Date('2026-03-01').getTime();const cycle=29.53058867*86400000;const phase=((Date.now()-ref)%cycle)/cycle;return Math.min(120,Math.max(20,Math.round(70+50*Math.abs(Math.cos(phase*2*Math.PI)))))}
+
+function buildSeaSection(coef,cInfo,waveH,waveDir,sea,tideToday){
+  const tides=tideToday?`
+    <div class="tides-lbl">⏱ Horario de mareas · Hoy</div>
+    <div class="tides-row">${tideToday.mareas.map(m=>`
+      <div class="tide-item"><div class="tide-type">${m.t==='P'?'⬆️':'⬇️'}</div>
+        <div><div class="t-label">${m.t==='P'?'Pleamar':'Bajamar'}</div>
+        <div class="t-time">${m.h}</div><div class="t-h">${m.m>0?'+':''}${m.m} m</div></div></div>`).join('')}
+    </div>`:`<div class="warn-msg" style="margin-top:12px">Sin datos de mareas para hoy en la base de datos.</div>`;
+  return`<div class="sea-section">
+    <div class="sea-grid">
+      <div class="sea-stat"><span class="stat-label">Estado del mar</span><div class="stat-val">${sea.s}</div><small style="color:rgba(0,229,204,.4);font-size:.68rem">Beaufort ${sea.b}</small></div>
+      <div class="sea-stat"><span class="stat-label">Altura de ola</span><div class="stat-val">${waveH.toFixed(1)}<span class="stat-unit">m</span></div><small style="color:rgba(0,229,204,.4);font-size:.68rem">Procedencia ${waveDir}</small></div>
+      <div class="sea-stat"><span class="stat-label">Coeficiente de marea</span><div style="font-family:'Orbitron',monospace;font-size:1.9rem;font-weight:700;color:${cInfo.color}">${coef}</div>
+        <div class="coef-badge" style="border:1px solid ${cInfo.color}44;background:${cInfo.color}11;color:${cInfo.color}">🌊 MAREA ${cInfo.tipo}</div></div>
+    </div>${tides}<div class="sea-wave"></div></div>`;
+}
+
+// ════════════════════════════════════════════════════════════
+//  PREDICCIÓN HORARIA
+// ════════════════════════════════════════════════════════════
+async function loadHoraria(){
+  const el=document.getElementById('hourly-panel');
+  try{
+    const data=await aemetFetch(`/prediccion/especifica/municipio/horaria/${MUNICIPIO}`);
+    const dias=data[0].prediccion.dia;const now=new Date();const hora=now.getHours();
+    let cards='';let count=0;
+    dias.forEach(dia=>{
+      const fecha=dia.fecha?.slice(0,10)||'';
+      const temps=dia.temperatura||[];const cielos=dia.estadoCielo||[];const vientos=dia.vientoAndRachaMax||dia.viento||[];
+      const precs=dia.precipitacion||[];
+      temps.forEach(t=>{
+        if(count>=48)return;
+        const h=parseInt(t.periodo||0);
+        const dateH=new Date(fecha+'T'+String(h).padStart(2,'0')+':00:00');
+        if(dateH<now&&count===0&&Math.abs(dateH-now)>3600000)return;
+        const sky=cielos.find(c=>parseInt(c.periodo||0)===h)||cielos[0]||{value:'13'};
+        const vArr=Array.isArray(vientos)?vientos.find(v=>parseInt(v.periodo||0)===h)||vientos[0]:null;
+        const vVel=vArr?parseFloat(vArr.velocidad||0):0;
+        const prec=precs.find(p=>parseInt(p.periodo||0)===h)||{value:'0'};
+        const isCurrent=Math.abs(dateH-now)<3600000;
+        cards+=`<div class="h-card ${isCurrent?'current-h':''}">
+          <div class="h-hora">${String(h).padStart(2,'0')}:00</div>
+          <div class="h-icon">${aemetIcon(sky.value||'13',h>=7&&h<21?1:0)}</div>
+          <div class="h-temp">${t.value||'—'}°</div>
+          <div class="h-prec">💧${prec.value||0}%</div>
+          <div class="h-wind">💨${Math.round(vVel)}km/h</div>
+        </div>`;count++;
+      });
+    });
+    el.innerHTML=cards?`<div class="hourly-scroll"><div class="hourly-row">${cards}</div></div>`:'<div class="warn-msg">Sin datos horarios disponibles</div>';
+  }catch(err){
+    el.innerHTML=`<div class="warn-msg">⚠️ Predicción horaria no disponible: ${err.message}</div>`;
   }
 }
 
-function parseCapXML(xmlStr) {
-  try {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(xmlStr, 'text/xml');
-    const alerts = [];
-    const infos = doc.querySelectorAll('info');
-    infos.forEach(info => {
-      const lang = info.querySelector('language')?.textContent || '';
-      if (lang && lang !== 'es-ES' && lang !== 'es') return;
-      const event    = info.querySelector('event')?.textContent || '';
-      const headline = info.querySelector('headline')?.textContent || '';
-      const desc     = info.querySelector('description')?.textContent || '';
-      const onset    = info.querySelector('onset')?.textContent || '';
-      const expires  = info.querySelector('expires')?.textContent || '';
-      // Nivel de alerta desde parámetros CAP
-      let nivel = 'amarillo';
-      info.querySelectorAll('parameter').forEach(p => {
-        const pname = p.querySelector('valueName')?.textContent || '';
-        const pval  = p.querySelector('value')?.textContent || '';
-        if (pname.toLowerCase().includes('nivel') || pname.toLowerCase().includes('level')) {
-          if (pval.toLowerCase().includes('rojo')   || pval.toLowerCase().includes('red'))    nivel = 'rojo';
-          if (pval.toLowerCase().includes('naranja')|| pval.toLowerCase().includes('orange')) nivel = 'naranja';
-          if (pval.toLowerCase().includes('amarill')|| pval.toLowerCase().includes('yellow')) nivel = 'amarillo';
+// ════════════════════════════════════════════════════════════
+//  PREVISIÓN 7 DÍAS
+// ════════════════════════════════════════════════════════════
+function renderDiaria(aeData,omData){
+  const pred=aeData[0].prediccion.dia;let html='';
+  pred.slice(0,7).forEach((dObj,i)=>{
+    const dDate=new Date(dObj.fecha);const dKey=dObj.fecha.slice(0,10);
+    const dName=i===0?'HOY':i===1?'MAÑANA':DAYS[dDate.getDay()];
+    const tMax=parseFloat(dObj.temperatura?.maxima);const tMin=parseFloat(dObj.temperatura?.minima);
+    const vArr=dObj.viento;const vMax=Array.isArray(vArr)?Math.max(...vArr.map(v=>parseFloat(v.velocidad||0)).filter(x=>!isNaN(x)&&x>0),0):0;
+    const probArr=dObj.probPrecipitacion;const prob=Array.isArray(probArr)?Math.max(...probArr.map(p=>parseFloat(p.value||0)).filter(x=>!isNaN(x)),0):0;
+    const skArr=dObj.estadoCielo;const sk=Array.isArray(skArr)?(skArr.find(s=>s.periodo==='12-24'&&s.value!=='')||skArr.find(s=>s.value&&s.value!=='')||skArr[0]||{value:'13'}):{value:'13'};
+    const snowD=snowLevel(!isNaN(tMax)?tMax:15);const tideD=TIDES_DB[dKey];const coefD=tideD?tideD.coef:null;
+    html+=`<div class="fc-card ${i===0?'today':''}">
+      <div class="fc-day">${dName}<br><small style="opacity:.52;font-size:.52rem">${dateStr(dDate)}</small></div>
+      <div class="fc-icon">${aemetIcon(sk.value||'13',1)}</div>
+      <div class="fc-tmax">${!isNaN(tMax)?Math.round(tMax)+'°':'—'}</div>
+      <div class="fc-tmin">${!isNaN(tMin)?Math.round(tMin)+'°':'—'}</div>
+      <div class="fc-detail">
+        <div>🌧️ <span>${Math.round(prob)}%</span></div>
+        <div>💨 <span>${Math.round(vMax)}km/h</span></div>
+        <div>❄️ <span>${snowD>0?snowD.toLocaleString('es')+'m':'<100m'}</span></div>
+        ${coefD?`<div>🌊 <span>Coef.${coefD}</span></div>`:''}
+      </div></div>`;
+  });
+  document.getElementById('forecast-grid').innerHTML=html||'<div class="warn-msg">Sin datos</div>';
+}
+function renderDiariaFallback(omData){
+  const daily=omData.daily;let html='';
+  daily.time.slice(0,7).forEach((t,i)=>{
+    const date=new Date(t+'T12:00:00');const dName=i===0?'HOY':i===1?'MAÑANA':DAYS[date.getDay()];
+    const maxT=Math.round(daily.temperature_2m_max[i]);const minT=Math.round(daily.temperature_2m_min[i]);
+    const rain=(daily.precipitation_sum[i]||0).toFixed(1);const wind=Math.round(daily.windspeed_10m_max[i]);
+    const dir=windDir(daily.winddirection_10m_dominant[i]);const snowD=snowLevel(maxT);
+    const tideD=TIDES_DB[t];const coefD=tideD?tideD.coef:null;
+    function omIcon(c){const m={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',51:'🌦️',61:'🌧️',63:'🌧️',71:'🌨️',80:'🌦️',95:'⛈️'};return m[c]||'🌡️'}
+    html+=`<div class="fc-card ${i===0?'today':''}">
+      <div class="fc-day">${dName}<br><small style="opacity:.52;font-size:.52rem">${dateStr(date)}</small></div>
+      <div class="fc-icon">${omIcon(daily.weathercode[i])}</div>
+      <div class="fc-tmax">${maxT}°</div><div class="fc-tmin">${minT}°</div>
+      <div class="fc-detail"><div>🌧️ <span>${rain}mm</span></div><div>💨 <span>${wind}km/h ${dir}</span></div>
+        <div>❄️ <span>${snowD>0?snowD.toLocaleString('es')+'m':'<100m'}</span></div>
+        ${coefD?`<div>🌊 <span>Coef.${coefD}</span></div>`:''}
+      </div></div>`;
+  });
+  document.getElementById('forecast-grid').innerHTML=html;
+}
+
+// ════════════════════════════════════════════════════════════
+//  OBSERVACIÓN CONVENCIONAL 24H
+// ════════════════════════════════════════════════════════════
+async function loadObservacion(){
+  const el=document.getElementById('obs-panel');
+  try{
+    // Intentar primero estación Llanes C030E, fallback Ribadesella 1018D
+    let obsData=null;let stationName='';
+    for(const id of[IDEMA_LLANES,IDEMA_ALT]){
+      try{
+        obsData=await aemetFetch(`/observacion/convencional/datos/estacion/${id}`);
+        stationName=obsData[0]?.ubi||id;break;
+      }catch(e){console.warn(`Estación ${id} no disponible:`,e)}
+    }
+    if(!obsData||!obsData.length){throw new Error('Sin datos de observación')}
+    // Tomar últimas 24 observaciones (1 por hora aprox)
+    const obs24=obsData.slice(-24).reverse();
+    const last=obs24[0];
+    el.innerHTML=`
+      <div class="obs-station">📍 Estación: <strong style="color:var(--cyan)">${stationName}</strong> · IDEMA: ${last.idema||'—'} · Alt: ${last.alt||'—'}m</div>
+      <div class="obs-grid">
+        <div class="obs-card"><div class="obs-icon">🌡️</div><span class="obs-label">Temperatura actual</span><div class="obs-val">${last.ta??last.ta2??'—'}<span class="obs-unit">°C</span></div><div class="obs-sub">Máx: ${last.tamax||'—'}° Mín: ${last.tamin||'—'}°</div></div>
+        <div class="obs-card"><div class="obs-icon">💧</div><span class="obs-label">Humedad relativa</span><div class="obs-val">${last.hr||'—'}<span class="obs-unit">%</span></div><div class="obs-sub">Punto de rocío: ${last.tpr||'—'}°C</div></div>
+        <div class="obs-card"><div class="obs-icon">💨</div><span class="obs-label">Viento medio</span><div class="obs-val">${last.vv||'—'}<span class="obs-unit">km/h</span></div><div class="obs-sub">Dir: ${last.dv||'—'}° · Racha: ${last.vmax||'—'}km/h</div></div>
+        <div class="obs-card"><div class="obs-icon">🌧️</div><span class="obs-label">Precipitación</span><div class="obs-val">${last.prec||'0'}<span class="obs-unit">mm</span></div><div class="obs-sub">Última hora</div></div>
+        <div class="obs-card"><div class="obs-icon">🔵</div><span class="obs-label">Presión reducida</span><div class="obs-val">${last.pres||last.pres_nmar||'—'}<span class="obs-unit">hPa</span></div><div class="obs-sub">Al nivel del mar</div></div>
+        <div class="obs-card"><div class="obs-icon">👁️</div><span class="obs-label">Visibilidad</span><div class="obs-val">${last.vis!=null?(last.vis/1000).toFixed(1):'—'}<span class="obs-unit">km</span></div><div class="obs-sub">Horizontal actual</div></div>
+        <div class="obs-card"><div class="obs-icon">☁️</div><span class="obs-label">Nubosidad</span><div class="obs-val">${last.nub!=null?last.nub:'—'}<span class="obs-unit">/8</span></div><div class="obs-sub">Octavas</div></div>
+        <div class="obs-card"><div class="obs-icon">🌡️</div><span class="obs-label">Temp. suelo 5cm</span><div class="obs-val">${last.ts||last.tss||'—'}<span class="obs-unit">°C</span></div><div class="obs-sub">Temperatura del suelo</div></div>
+      </div>
+      <div class="section-title" style="margin-top:22px">🕐 Registro horario · Últimas 24h</div>
+      <div style="overflow-x:auto;scrollbar-width:thin;scrollbar-color:rgba(0,245,255,.3) transparent">
+        <table style="width:100%;border-collapse:collapse;font-size:.75rem;min-width:600px">
+          <thead><tr style="border-bottom:1px solid rgba(0,245,255,.2)">${['Hora','Temp °C','Hum %','Viento km/h','Dir°','Racha km/h','Prec mm','Pres hPa'].map(h=>`<th style="padding:8px 10px;text-align:center;font-family:'Orbitron',monospace;font-size:.58rem;letter-spacing:.14em;color:var(--teal);font-weight:400">${h}</th>`).join('')}</tr></thead>
+          <tbody>${obs24.map((o,i)=>`<tr style="border-bottom:1px solid rgba(0,245,255,.06);background:${i===0?'rgba(0,245,255,.06)':'transparent'}">
+            <td style="padding:6px 10px;text-align:center;font-family:'Orbitron',monospace;font-size:.65rem;color:var(--cyan)">${o.fint?o.fint.slice(11,16):'—'}</td>
+            <td style="padding:6px 10px;text-align:center;color:#fff;font-weight:600">${o.ta??'—'}</td>
+            <td style="padding:6px 10px;text-align:center">${o.hr??'—'}</td>
+            <td style="padding:6px 10px;text-align:center">${o.vv??'—'}</td>
+            <td style="padding:6px 10px;text-align:center">${o.dv??'—'}</td>
+            <td style="padding:6px 10px;text-align:center;color:${parseFloat(o.vmax)>60?'#ff6b35':'inherit'}">${o.vmax??'—'}</td>
+            <td style="padding:6px 10px;text-align:center;color:${parseFloat(o.prec)>0?'#00f5ff':'inherit'}">${o.prec??'—'}</td>
+            <td style="padding:6px 10px;text-align:center">${o.pres??'—'}</td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>`;
+  }catch(err){
+    el.innerHTML=`<div class="warn-msg">⚠️ Observación no disponible: ${err.message}<br>La API de AEMET puede tardar unos minutos en responder. Reintentando…</div>`;
+    setTimeout(()=>{tabLoaded['tab-obs']=false;loadObservacion()},30000);
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  GRÁFICOS 24H
+// ════════════════════════════════════════════════════════════
+let chartInstances={};
+async function loadGraficos(){
+  const el=document.getElementById('charts-panel');
+  el.innerHTML='<div class="loading">GENERANDO GRÁFICOS<span class="spinner"></span></div>';
+  try{
+    // Usar Open-Meteo horario para gráficos (datos más fiables y completos)
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&hourly=temperature_2m,relativehumidity_2m,precipitation,windspeed_10m,pressure_msl&timezone=Europe%2FMadrid&past_days=1&forecast_days=1`;
+    const res=await fetch(url);const data=await res.json();
+    const h=data.hourly;
+    // Filtrar últimas 24h
+    const now=new Date();
+    const idxNow=h.time.findIndex(t=>new Date(t)>now);
+    const start=Math.max(0,(idxNow>=0?idxNow:h.time.length)-24);
+    const labels=h.time.slice(start,start+24).map(t=>t.slice(11,16));
+    const temps=h.temperature_2m.slice(start,start+24);
+    const hums=h.relativehumidity_2m.slice(start,start+24);
+    const precs=h.precipitation.slice(start,start+24);
+    const winds=h.windspeed_10m.slice(start,start+24);
+    const press=h.pressure_msl.slice(start,start+24);
+    // Destruir gráficos previos
+    Object.values(chartInstances).forEach(c=>c.destroy());chartInstances={};
+    el.innerHTML=`
+      <div class="charts-grid">
+        <div class="chart-wrap"><div class="chart-title">🌡️ Temperatura (°C)</div><canvas id="ch-temp"></canvas></div>
+        <div class="chart-wrap"><div class="chart-title">💧 Humedad relativa (%)</div><canvas id="ch-hum"></canvas></div>
+        <div class="chart-wrap"><div class="chart-title">🌧️ Precipitación (mm/h)</div><canvas id="ch-prec"></canvas></div>
+        <div class="chart-wrap"><div class="chart-title">💨 Velocidad del viento (km/h)</div><canvas id="ch-wind"></canvas></div>
+        <div class="chart-wrap" style="grid-column:1/-1"><div class="chart-title">🔵 Presión atmosférica (hPa)</div><canvas id="ch-pres"></canvas></div>
+      </div>`;
+    const chartOpts=(label,data,color,type='line',fill=true)=>({
+      type,data:{labels,datasets:[{label,data,borderColor:color,backgroundColor:fill?color.replace(')',',0.15)').replace('rgb','rgba'):color,
+        borderWidth:2,pointRadius:2,pointHoverRadius:4,fill,tension:.35}]},
+      options:{responsive:true,maintainAspectRatio:true,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,
+        backgroundColor:'rgba(0,13,26,.9)',titleColor:'#00f5ff',bodyColor:'#cce8ff',borderColor:'rgba(0,245,255,.3)',borderWidth:1}},
+        scales:{x:{ticks:{color:'rgba(0,245,255,.45)',font:{size:10},maxTicksLimit:8},grid:{color:'rgba(0,245,255,.07)'}},
+          y:{ticks:{color:'rgba(0,245,255,.45)',font:{size:10}},grid:{color:'rgba(0,245,255,.07)'}}}}});
+    chartInstances.temp=new Chart(document.getElementById('ch-temp'),chartOpts('Temperatura',temps,'rgb(0,245,255)'));
+    chartInstances.hum =new Chart(document.getElementById('ch-hum'), chartOpts('Humedad',hums,'rgb(0,200,150)'));
+    chartInstances.prec=new Chart(document.getElementById('ch-prec'),chartOpts('Precipitación',precs,'rgb(0,100,255)','bar',false));
+    chartInstances.wind=new Chart(document.getElementById('ch-wind'),chartOpts('Viento',winds,'rgb(255,200,0)'));
+    chartInstances.pres=new Chart(document.getElementById('ch-pres'),chartOpts('Presión',press,'rgb(180,100,255)'));
+  }catch(err){
+    el.innerHTML=`<div class="warn-msg">⚠️ Error al cargar gráficos: ${err.message}</div>`;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  PREDICCIÓN MARÍTIMA COSTERA
+// ════════════════════════════════════════════════════════════
+async function loadMaritima(){
+  const el=document.getElementById('maritima-panel');
+  try{
+    // Costa Cantábrica = código 41
+    const txt=await aemetFetchText('/prediccion/maritima/costera/costa/41');
+    el.innerHTML=`
+      <div class="text-meta">📡 Fuente: AEMET · Predicción marítima costera · Costa Cantábrica (Código 41)</div>
+      <div class="text-box">${txt||'Sin datos disponibles'}</div>
+      <div style="margin-top:12px">
+        <div class="section-title">🌊 Estado del mar · Predicción marina Open-Meteo</div>
+        <div id="marine-forecast-cards"><div class="loading">CARGANDO<span class="spinner"></span></div></div>
+      </div>`;
+    loadMarineForecast();
+  }catch(err){
+    el.innerHTML=`<div class="warn-msg">⚠️ Predicción marítima AEMET no disponible: ${err.message}</div><div id="marine-forecast-cards"><div class="loading">CARGANDO DATOS MARINOS<span class="spinner"></span></div></div>`;
+    loadMarineForecast();
+  }
+}
+async function loadMarineForecast(){
+  const el=document.getElementById('marine-forecast-cards');if(!el)return;
+  try{
+    const mar=await fetchMarine();if(!mar?.daily)throw new Error('Sin datos');
+    const now=new Date();let html='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px">';
+    mar.daily.time.forEach((t,i)=>{
+      const date=new Date(t+'T12:00:00');const wh=(mar.daily.wave_height_max[i]||0).toFixed(1);const sea=seaState(parseFloat(wh));
+      html+=`<div class="obs-card" style="text-align:center">
+        <div class="obs-icon">🌊</div>
+        <div style="font-family:'Orbitron',monospace;font-size:.6rem;color:var(--teal);letter-spacing:.14em;margin-bottom:6px">${i===0?'HOY':DAYS[date.getDay()]} ${date.getDate()} ${MONTHS[date.getMonth()]}</div>
+        <div class="obs-val">${wh}<span class="obs-unit">m</span></div>
+        <div class="obs-sub">${sea.s}</div>
+        <div class="obs-sub">Beaufort ${sea.b}</div>
+      </div>`;
+    });
+    html+='</div>';el.innerHTML=html;
+  }catch(e){el.innerHTML=`<div class="warn-msg">Sin previsión marina disponible</div>`}
+}
+
+// ════════════════════════════════════════════════════════════
+//  PREDICCIÓN MONTAÑA (Picos de Europa)
+// ════════════════════════════════════════════════════════════
+async function loadMontana(){
+  const el=document.getElementById('montana-panel');
+  try{
+    // Área 71 = Picos de Europa / Cantábrico Oriental
+    const txt=await aemetFetchText('/prediccion/especifica/montana/pasada/area/71');
+    el.innerHTML=`
+      <div class="text-meta">🏔️ Fuente: AEMET · Predicción de montaña · Picos de Europa / Área 71</div>
+      <div class="text-box">${txt||'Sin datos disponibles'}</div>
+      <div class="section-title" style="margin-top:22px">❄️ Información nivológica</div>
+      <div id="nivologica-panel"><div class="loading">CARGANDO<span class="spinner"></span></div></div>`;
+    loadNivologica();
+  }catch(err){
+    el.innerHTML=`<div class="warn-msg">⚠️ Predicción de montaña no disponible: ${err.message}</div><div id="nivologica-panel"><div class="loading">CARGANDO DATOS NIVOLÓGICOS<span class="spinner"></span></div></div>`;
+    loadNivologica();
+  }
+}
+async function loadNivologica(){
+  const el=document.getElementById('nivologica-panel');if(!el)return;
+  try{
+    const txt=await aemetFetchText('/prediccion/especifica/nivologica/area/71');
+    el.innerHTML=`<div class="text-box">${txt||'Sin datos nivológicos disponibles'}</div>`;
+  }catch(e){el.innerHTML=`<div class="info-msg">ℹ️ Información nivológica no disponible en este momento.</div>`}
+}
+
+// ════════════════════════════════════════════════════════════
+//  CLIMATOLOGÍA (últimos 4 días)
+// ════════════════════════════════════════════════════════════
+async function loadClimatologia(){
+  const el=document.getElementById('clim-panel');
+  try{
+    const now=new Date();
+    const fFin=now.toISOString().slice(0,10)+'T23:59:59UTC';
+    const dStart=new Date(now);dStart.setDate(dStart.getDate()-4);
+    const fIni=dStart.toISOString().slice(0,10)+'T00:00:00UTC';
+    const data=await aemetFetch(`/valores/climatologicos/diarios/datos/fechaini/${encodeURIComponent(fIni)}/fechafin/${encodeURIComponent(fFin)}/estacion/${IDEMA_LLANES}`);
+    if(!data||!data.length)throw new Error('Sin datos climatológicos');
+    const sorted=[...data].sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+    let html=`<div class="clim-grid">${sorted.map(d=>{
+      const fD=new Date(d.fecha);
+      return`<div class="clim-card">
+        <div class="clim-date">${String(fD.getDate()).padStart(2,'0')}/${String(fD.getMonth()+1).padStart(2,'0')}/${fD.getFullYear()}</div>
+        ${[['🌡️ T. Máx',d.tmax,'°C'],['🌡️ T. Mín',d.tmin,'°C'],['🌡️ T. Media',d.tmed,'°C'],
+           ['🌧️ Precipit.',d.prec,'mm'],['💨 Racha máx',d.racha,'km/h'],['🧭 Dir. racha',d.dirracha,'°'],
+           ['🔵 Presión',d.presMax||d.pres,'hPa'],['💧 Humedad',d.hrMedia||d.hr,'%']]
+          .filter(r=>r[1]!=null&&r[1]!==''&&r[1]!=='Ip')
+          .map(([k,v,u])=>`<div class="clim-row"><span class="clim-key">${k}</span><span class="clim-v">${v}<small style="color:var(--teal);font-size:.65rem;margin-left:2px">${u}</small></span></div>`).join('')}
+      </div>`;}).join('')}</div>
+      <div class="info-msg" style="margin-top:12px">📊 Datos climatológicos de la estación AEMET · Los registros se publican con un retraso de 24-48 horas.</div>`;
+    el.innerHTML=html;
+  }catch(err){
+    // Fallback: mostrar datos Open-Meteo históricos
+    try{
+      const url=`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,winddirection_10m_dominant&timezone=Europe%2FMadrid&past_days=4&forecast_days=0`;
+      const res=await fetch(url);const data=await res.json();
+      let html='<div class="warn-msg">⚠️ Datos AEMET no disponibles. Mostrando Open-Meteo.</div><div class="clim-grid">';
+      data.daily.time.reverse().forEach(t=>{
+        const i=data.daily.time.indexOf(t);const d=new Date(t+'T12:00:00');
+        html+=`<div class="clim-card"><div class="clim-date">${dateStr(d)} ${d.getFullYear()}</div>
+          <div class="clim-row"><span class="clim-key">🌡️ T. Máx</span><span class="clim-v">${data.daily.temperature_2m_max[i]}°C</span></div>
+          <div class="clim-row"><span class="clim-key">🌡️ T. Mín</span><span class="clim-v">${data.daily.temperature_2m_min[i]}°C</span></div>
+          <div class="clim-row"><span class="clim-key">🌧️ Precipit.</span><span class="clim-v">${data.daily.precipitation_sum[i]}mm</span></div>
+          <div class="clim-row"><span class="clim-key">💨 Viento máx</span><span class="clim-v">${data.daily.windspeed_10m_max[i]}km/h</span></div>
+        </div>`;});
+      el.innerHTML=html+'</div>';
+    }catch(e2){el.innerHTML=`<div class="warn-msg">⚠️ No hay datos climatológicos disponibles: ${err.message}</div>`}
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  MAPAS AEMET
+// ════════════════════════════════════════════════════════════
+async function loadMapas(){
+  const el=document.getElementById('mapas-panel');
+  el.innerHTML='<div class="loading">CARGANDO MAPAS AEMET<span class="spinner"></span></div>';
+  const mapas=[
+    {titulo:'🌡️ Temperatura máxima hoy',ep:'/mapasygraficos/analisis/mapa/temperatura/maxima/tmax_ahora',tipo:'img'},
+    {titulo:'🌡️ Temperatura mínima hoy',ep:'/mapasygraficos/analisis/mapa/temperatura/minima/tmin_ahora',tipo:'img'},
+    {titulo:'🌧️ Precipitación acumulada',ep:'/mapasygraficos/analisis/mapa/temperatura/precipitacion/prec_ahora',tipo:'img'},
+    {titulo:'💨 Viento en superficie',ep:'/mapasygraficos/analisis/mapa/viento/vvmedia_ahora',tipo:'img'},
+    {titulo:'🔵 Presión en superficie',ep:'/mapasygraficos/analisis/mapa/presion/presion_ahora',tipo:'img'},
+    {titulo:'☁️ Análisis sinóptico',ep:'/mapasygraficos/mapa/analisis/sfc',tipo:'img'},
+    {titulo:'📡 Satélite infrarrojo',ep:'/satelites/composicion/nacional/infrarrojo/ultimoelaborado',tipo:'img'},
+    {titulo:'🌩️ Rayos (última hora)',ep:'/red/rayos/mapa/ultimoelaborado',tipo:'img'},
+  ];
+  // Cargar imágenes AEMET con URLs directas
+  const results=await Promise.allSettled(mapas.map(m=>aemetFetchImg(m.ep)));
+  let html='<div class="mapas-grid">';
+  mapas.forEach((m,i)=>{
+    const r=results[i];const url=r.status==='fulfilled'?r.value:null;
+    html+=`<div class="mapa-card">
+      <div class="mapa-card-title">${m.titulo}</div>
+      ${url?`<img src="${url}" alt="${m.titulo}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'mapa-card-title\\'>${m.titulo}</div><div class=\\'no-img\\'>Imagen no disponible</div>'">`
+            :`<div class="no-img">⚠️ No disponible</div>`}
+    </div>`;
+  });
+  // Mapa AEMET web embebido como iframe
+  html+=`<div class="mapa-card" style="grid-column:1/-1">
+    <div class="mapa-card-title">🗺️ Mapa de predicción AEMET · Enlace directo</div>
+    <div style="padding:18px;text-align:center">
+      <a href="https://www.aemet.es/es/eltiempo/prediccion/municipios/llanes-id33036" target="_blank"
+         style="display:inline-block;background:rgba(0,245,255,.1);border:1px solid rgba(0,245,255,.3);color:var(--cyan);
+         font-family:'Orbitron',monospace;font-size:.72rem;letter-spacing:.2em;padding:12px 24px;border-radius:4px;text-decoration:none;text-transform:uppercase">
+        🔗 Ver predicción completa en AEMET
+      </a>
+      <p style="font-size:.75rem;color:rgba(0,245,255,.4);margin-top:10px;letter-spacing:.1em">Llanes · id33036 · AEMET.es</p>
+    </div>
+  </div>`;
+  html+='</div>';el.innerHTML=html;
+}
+
+// ════════════════════════════════════════════════════════════
+//  ALERTAS
+// ════════════════════════════════════════════════════════════
+async function fetchAlertas(){
+  try{
+    const r1=await fetch(PROXY+encodeURIComponent(`https://opendata.aemet.es/opendata/api/avisos_cap/ultimoelaborado/area/33?api_key=${getKey()}`));
+    const j1=await r1.json();const b1=JSON.parse(j1.contents);
+    if(b1.estado!==200)return[];
+    const r2=await fetch(PROXY+encodeURIComponent(b1.datos));
+    const j2=await r2.json();const raw=j2.contents;if(!raw)return[];
+    try{const p=JSON.parse(raw);return Array.isArray(p)?p:[p]}
+    catch{return parseCapXML(raw)}
+  }catch(e){console.warn('Alertas:',e);return[]}
+}
+function parseCapXML(xml){
+  try{
+    const doc=new DOMParser().parseFromString(xml,'text/xml');
+    const alerts=[];
+    doc.querySelectorAll('info').forEach(info=>{
+      const lang=info.querySelector('language')?.textContent||'';
+      if(lang&&!lang.startsWith('es'))return;
+      const event=info.querySelector('event')?.textContent||'';
+      const headline=info.querySelector('headline')?.textContent||'';
+      const desc=info.querySelector('description')?.textContent||'';
+      const onset=info.querySelector('onset')?.textContent||'';
+      const expires=info.querySelector('expires')?.textContent||'';
+      let nivel='amarillo';
+      info.querySelectorAll('parameter').forEach(p=>{
+        const n=p.querySelector('valueName')?.textContent?.toLowerCase()||'';
+        const v=p.querySelector('value')?.textContent?.toLowerCase()||'';
+        if(n.includes('nivel')||n.includes('level')){
+          if(v.includes('rojo')||v.includes('red'))nivel='rojo';
+          else if(v.includes('naranja')||v.includes('orange'))nivel='naranja';
+          else if(v.includes('amarill')||v.includes('yellow'))nivel='amarillo';
         }
       });
-      // También inferir nivel desde severity
-      const severity = info.querySelector('severity')?.textContent?.toLowerCase() || '';
-      if (severity === 'extreme')  nivel = 'rojo';
-      if (severity === 'severe')   nivel = 'naranja';
-      if (severity === 'moderate') nivel = 'amarillo';
-
-      alerts.push({ event, headline, desc, onset, expires, nivel });
+      const sev=info.querySelector('severity')?.textContent?.toLowerCase()||'';
+      if(sev==='extreme')nivel='rojo';else if(sev==='severe')nivel='naranja';else if(sev==='moderate')nivel='amarillo';
+      alerts.push({event,headline,desc,onset,expires,nivel});
     });
     return alerts;
-  } catch(e) {
-    return [];
-  }
+  }catch(e){return[]}
 }
-
-function renderAlertas(alerts, lastUpdate) {
-  const panel = document.getElementById('alertas-panel');
-  if (!panel) return;
-
-  const ts = lastUpdate
-    ? `${String(lastUpdate.getHours()).padStart(2,'0')}:${String(lastUpdate.getMinutes()).padStart(2,'0')}`
-    : '--:--';
-
-  // Tipos de fenómeno → emoji
-  function alertIcon(event) {
-    const e = (event||'').toLowerCase();
-    if (e.includes('viento') || e.includes('wind'))      return '💨';
-    if (e.includes('lluvia') || e.includes('rain'))      return '🌧️';
-    if (e.includes('nieve') || e.includes('snow'))       return '❄️';
-    if (e.includes('tormenta') || e.includes('storm'))   return '⛈️';
-    if (e.includes('niebla') || e.includes('fog'))       return '🌫️';
-    if (e.includes('marea') || e.includes('coastal'))    return '🌊';
-    if (e.includes('calor') || e.includes('heat'))       return '🌡️';
-    if (e.includes('frio') || e.includes('cold'))        return '🧊';
-    if (e.includes('fuego') || e.includes('fire'))       return '🔥';
-    if (e.includes('rayos') || e.includes('lightning'))  return '⚡';
-    return '⚠️';
-  }
-
-  function formatDate(iso) {
-    if (!iso) return '';
-    try {
-      const d = new Date(iso);
-      return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-    } catch { return iso; }
-  }
-
-  const hayAlertas = alerts && alerts.length > 0;
-
-  // Elegir dot según nivel máximo
-  let dotClass = 'alert-dot-ok';
-  if (hayAlertas) {
-    const niveles = alerts.map(a=>a.nivel||'amarillo');
-    if (niveles.includes('rojo'))    dotClass = 'alert-dot-red';
-    else if (niveles.includes('naranja')) dotClass = 'alert-dot-warn';
-    else dotClass = 'alert-dot-warn';
-  }
-
-  let html = `
-    <div class="alert-panel">
-      <div class="alert-header">
-        <div class="alert-header-left">
-          <div class="${dotClass}"></div>
-          ⚠️ Alertas AEMET · Asturias / Llanes
-        </div>
-        <div class="alert-ts">ACT. ${ts}</div>
-      </div>`;
-
-  if (!hayAlertas) {
-    html += `
-      <div class="alert-none">
-        ✅ &nbsp;Sin alertas activas en este momento para la zona de Llanes
-      </div>`;
-  } else {
-    alerts.forEach(a => {
-      const nivel  = a.nivel || 'amarillo';
-      const badge  = `<span class="nivel-badge badge-${nivel}">${nivel.toUpperCase()}</span>`;
-      const titulo = a.headline || a.event || 'Aviso meteorológico';
-      const desc   = a.desc ? a.desc.slice(0, 220) + (a.desc.length > 220 ? '…' : '') : '';
-      const meta   = [
-        a.onset   ? '▶ Inicio: '   + formatDate(a.onset)   : '',
-        a.expires ? '⏹ Fin: '      + formatDate(a.expires) : ''
-      ].filter(Boolean).join('  ·  ');
-
-      html += `
-        <div class="alert-item nivel-${nivel}">
-          <div class="alert-icon">${alertIcon(a.event)}</div>
-          <div class="alert-body">
-            <div class="alert-tipo">${titulo}${badge}</div>
-            ${desc ? `<div class="alert-desc">${desc}</div>` : ''}
-            ${meta ? `<div class="alert-meta">${meta}</div>` : ''}
-          </div>
-        </div>`;
-    });
-  }
-
-  html += `</div>`;
-  panel.innerHTML = html;
+function alertIcon(event){
+  const e=(event||'').toLowerCase();
+  if(e.includes('viento')||e.includes('wind'))return'💨';
+  if(e.includes('lluvia')||e.includes('rain'))return'🌧️';
+  if(e.includes('nieve')||e.includes('snow'))return'❄️';
+  if(e.includes('tormenta')||e.includes('storm'))return'⛈️';
+  if(e.includes('niebla')||e.includes('fog'))return'🌫️';
+  if(e.includes('marea')||e.includes('coastal'))return'🌊';
+  if(e.includes('calor')||e.includes('heat'))return'🌡️';
+  return'⚠️';
 }
-
-// ── INIT ───────────────────────────────────────────────────
-async function init() {
-  const apiKey = getKey();
-  if (apiKey) {
-    document.getElementById('keyInput').value = apiKey;
-    try {
-      document.getElementById('main-content').innerHTML = '<div class="loading">CONECTANDO CON AEMET<span class="spinner"></span></div>';
-      const [aeData, marineData, alertas] = await Promise.all([
-        fetchAEMET(apiKey),
-        fetchMarine(),
-        fetchAlertas(apiKey)
-      ]);
-      setStatus('✓ Datos AEMET cargados correctamente','ok');
-      renderAlertas(alertas, new Date());
-      renderWithAEMET(aeData, marineData);
-    } catch(err) {
-      console.error('AEMET error:', err);
-      setStatus('⚠️ Error con AEMET ('+err.message+'). Usando Open-Meteo…','err');
-      renderAlertas([], new Date());
-      try { await renderWithFallback(); } catch(e2) { showError(e2); }
-    }
-  } else {
-    renderAlertas([], new Date());
-    try { await renderWithFallback(); } catch(e) { showError(e); }
-  }
+function renderAlertas(alerts,ts){
+  const el=document.getElementById('alertas-panel');if(!el)return;
+  const hay=alerts&&alerts.length>0;
+  let dot='alert-dot-ok';
+  if(hay){const n=alerts.map(a=>a.nivel||'amarillo');dot=n.includes('rojo')?'alert-dot-red':n.includes('naranja')?'alert-dot-warn':'alert-dot-warn'}
+  let html=`<div class="alert-panel"><div class="alert-header">
+    <div class="alert-header-left"><div class="${dot}"></div>⚠️ Alertas AEMET · Asturias / Llanes</div>
+    <div class="alert-ts">ACT. ${timeStr(ts)}</div></div>`;
+  if(!hay){html+=`<div class="alert-none">✅ &nbsp;Sin alertas activas en este momento para la zona de Llanes</div>`}
+  else{alerts.forEach(a=>{
+    const n=a.nivel||'amarillo';const badge=`<span class="nivel-badge badge-${n}">${n.toUpperCase()}</span>`;
+    const tit=a.headline||a.event||'Aviso meteorológico';
+    const desc=a.desc?a.desc.slice(0,220)+(a.desc.length>220?'…':''):'';
+    const meta=[a.onset?'▶ Inicio: '+fmtISO(a.onset):'',a.expires?'⏹ Fin: '+fmtISO(a.expires):''].filter(Boolean).join('  ·  ');
+    html+=`<div class="alert-item nivel-${n}"><div class="alert-icon">${alertIcon(a.event)}</div>
+      <div class="alert-body"><div class="alert-tipo">${tit}${badge}</div>
+      ${desc?`<div class="alert-desc">${desc}</div>`:''}
+      ${meta?`<div class="alert-meta">${meta}</div>`:''}</div></div>`;
+  })}
+  html+=`</div>`;el.innerHTML=html;
 }
+function renderAlertasFallback(){renderAlertas([],new Date())}
 
-function showError(err) {
-  document.getElementById('main-content').innerHTML = `
-    <div class="error-msg">⚠️ Error al cargar datos: ${err.message}<br>Reintentando en 20 s…</div>`;
-  setTimeout(init, 20000);
+// ════════════════════════════════════════════════════════════
+//  RADAR RAINVIEWER
+// ════════════════════════════════════════════════════════════
+let radarMap,radarFrames=[],radarPos=0,radarTimer=null,radarLayers={},radarPlaying=false,radarHost='';
+function initRadar(){
+  if(document.getElementById('radar-map')._leaflet_id)return;
+  radarMap=L.map('radar-map',{center:[43.36,-5.85],zoom:8,zoomControl:true});
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:19}).addTo(radarMap);
+  const icon=L.divIcon({className:'',html:`<div style="background:rgba(0,245,255,.9);color:#000;font-family:'Orbitron',monospace;font-size:9px;font-weight:700;padding:3px 7px;border-radius:3px;white-space:nowrap;box-shadow:0 0 8px rgba(0,245,255,.6)">LLANES</div>`,iconAnchor:[30,10]});
+  L.marker([43.4206,-4.7549],{icon}).addTo(radarMap);
+  loadRadarFrames();setInterval(loadRadarFrames,10*60*1000);
 }
+async function loadRadarFrames(){
+  try{
+    const d=await(await fetch('https://api.rainviewer.com/public/weather-maps.json')).json();
+    radarHost=d.host;
+    const all=[...( d.radar.past||[]),...(d.radar.nowcast||[])];
+    Object.values(radarLayers).forEach(l=>{if(radarMap.hasLayer(l))radarMap.removeLayer(l)});
+    radarLayers={};radarFrames=all;
+    all.forEach(f=>{radarLayers[f.time]=L.tileLayer(`${radarHost}${f.path}/256/{z}/{x}/{y}/2/1_1.png`,{opacity:.7,zIndex:10})});
+    radarPos=(d.radar.past||[]).length-1;showRadarFrame(radarPos);
+  }catch(e){document.getElementById('radar-ts').textContent='Sin datos'}
+}
+function showRadarFrame(idx){
+  if(!radarFrames.length)return;
+  idx=Math.max(0,Math.min(idx,radarFrames.length-1));radarPos=idx;
+  Object.values(radarLayers).forEach(l=>{if(radarMap?.hasLayer(l))radarMap.removeLayer(l)});
+  const f=radarFrames[idx];if(!radarLayers[f.time])return;
+  radarLayers[f.time].addTo(radarMap);
+  const d=new Date(f.time*1000);const past=f.time*1000<=Date.now();
+  document.getElementById('radar-ts').textContent=(past?'':' 🔮')+`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function radarPlayStop(){
+  radarPlaying=!radarPlaying;const btn=document.getElementById('btn-play');
+  if(radarPlaying){btn.textContent='⏸ PAUSA';btn.classList.add('active');radarAnimate()}
+  else{btn.textContent='▶ PLAY';btn.classList.remove('active');clearTimeout(radarTimer)}
+}
+function radarAnimate(){
+  if(!radarPlaying)return;
+  radarPos=(radarPos+1)%radarFrames.length;showRadarFrame(radarPos);
+  radarTimer=setTimeout(radarAnimate,radarPos===radarFrames.length-1?2000:500);
+}
+function radarPrev(){clearTimeout(radarTimer);radarPlaying=false;document.getElementById('btn-play').textContent='▶ PLAY';document.getElementById('btn-play').classList.remove('active');showRadarFrame(radarPos-1)}
+function radarNext(){clearTimeout(radarTimer);radarPlaying=false;document.getElementById('btn-play').textContent='▶ PLAY';document.getElementById('btn-play').classList.remove('active');showRadarFrame(radarPos+1)}
+
+// ── ARRANQUE ───────────────────────────────────────────────
+function getKey(){return AEMET_KEY}
+function setKey(){}
+function saveKey(){}
+function setStatus(){}
 
 init();
-setInterval(init, 30*60*1000);
-</script>
-
-<!-- ═══ LEAFLET + RAINVIEWER RADAR ═══ -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script>
-// ════════════════════════════════════════════════════════
-//  RADAR DE LLUVIA — RainViewer API + Leaflet
-//  Centrado en Asturias, zoom 8
-// ════════════════════════════════════════════════════════
-const RADAR_LAT = 43.36, RADAR_LON = -5.85, RADAR_ZOOM = 8;
-
-let radarMap, radarFrames = [], radarPos = 0, radarTimer = null;
-let radarLayers = {}, radarPlaying = false;
-let radarHost = '';
-
-function initRadar() {
-  // Crear mapa Leaflet centrado en Asturias
-  radarMap = L.map('radar-map', {
-    center: [RADAR_LAT, RADAR_LON],
-    zoom: RADAR_ZOOM,
-    zoomControl: true,
-    attributionControl: true
-  });
-
-  // Capa base oscura (CartoDB Dark Matter)
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '© OpenStreetMap © CARTO',
-    subdomains: 'abcd', maxZoom: 19
-  }).addTo(radarMap);
-
-  // Marcador de Llanes
-  const llanesIcon = L.divIcon({
-    className: '',
-    html: `<div style="
-      background:rgba(0,245,255,.9); color:#000;
-      font-family:'Orbitron',monospace; font-size:9px; font-weight:700;
-      padding:3px 7px; border-radius:3px; white-space:nowrap;
-      box-shadow:0 0 8px rgba(0,245,255,.6);
-    ">LLANES</div>`,
-    iconAnchor: [30, 10]
-  });
-  L.marker([43.4206, -4.7549], { icon: llanesIcon }).addTo(radarMap);
-
-  // Cargar frames de RainViewer
-  loadRadarFrames();
-
-  // Refrescar radar cada 10 minutos
-  setInterval(loadRadarFrames, 10 * 60 * 1000);
-}
-
-async function loadRadarFrames() {
-  try {
-    const res = await fetch('https://api.rainviewer.com/public/weather-maps.json');
-    const data = await res.json();
-    radarHost = data.host;
-
-    // Frames pasados + nowcast (predicción corta)
-    const past = data.radar.past || [];
-    const now  = data.radar.nowcast || [];
-    const allFrames = [...past, ...now];
-
-    // Limpiar capas viejas
-    Object.values(radarLayers).forEach(l => { if (radarMap.hasLayer(l)) radarMap.removeLayer(l); });
-    radarLayers = {};
-
-    radarFrames = allFrames;
-
-    // Precreamos capas (lazy: se añaden al mostrar)
-    allFrames.forEach(frame => {
-      radarLayers[frame.time] = L.tileLayer(
-        `${radarHost}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`,
-        { opacity: 0.7, zIndex: 10 }
-      );
-    });
-
-    // Mostrar el frame más reciente (pasado)
-    radarPos = past.length - 1;
-    showRadarFrame(radarPos);
-
-  } catch(e) {
-    console.warn('RainViewer error:', e);
-    document.getElementById('radar-ts').textContent = 'Sin datos';
-  }
-}
-
-function showRadarFrame(idx) {
-  if (!radarFrames.length) return;
-  idx = Math.max(0, Math.min(idx, radarFrames.length - 1));
-  radarPos = idx;
-
-  // Ocultar todas las capas
-  Object.values(radarLayers).forEach(l => {
-    if (radarMap.hasLayer(l)) radarMap.removeLayer(l);
-  });
-
-  const frame = radarFrames[idx];
-  if (!radarLayers[frame.time]) return;
-
-  radarLayers[frame.time].addTo(radarMap);
-
-  // Timestamp
-  const d = new Date(frame.time * 1000);
-  const hh = String(d.getHours()).padStart(2,'0');
-  const mm = String(d.getMinutes()).padStart(2,'0');
-  const dd = String(d.getDate()).padStart(2,'0');
-  const mo = String(d.getMonth()+1).padStart(2,'0');
-  // Distinguir pasado vs nowcast
-  const isPast = (frame.time * 1000) <= Date.now();
-  document.getElementById('radar-ts').textContent =
-    (isPast ? '' : '🔮 ') + `${dd}/${mo} ${hh}:${mm}`;
-}
-
-function radarPlayStop() {
-  radarPlaying = !radarPlaying;
-  const btn = document.getElementById('btn-play');
-  if (radarPlaying) {
-    btn.textContent = '⏸ PAUSA';
-    btn.classList.add('active');
-    radarAnimate();
-  } else {
-    btn.textContent = '▶ PLAY';
-    btn.classList.remove('active');
-    clearTimeout(radarTimer);
-  }
-}
-
-function radarAnimate() {
-  if (!radarPlaying) return;
-  radarPos = (radarPos + 1) % radarFrames.length;
-  showRadarFrame(radarPos);
-  // Pausa más larga en el último frame
-  const delay = (radarPos === radarFrames.length - 1) ? 2000 : 500;
-  radarTimer = setTimeout(radarAnimate, delay);
-}
-
-function radarPrev() {
-  clearTimeout(radarTimer);
-  radarPlaying = false;
-  document.getElementById('btn-play').textContent = '▶ PLAY';
-  document.getElementById('btn-play').classList.remove('active');
-  showRadarFrame(radarPos - 1);
-}
-
-function radarNext() {
-  clearTimeout(radarTimer);
-  radarPlaying = false;
-  document.getElementById('btn-play').textContent = '▶ PLAY';
-  document.getElementById('btn-play').classList.remove('active');
-  showRadarFrame(radarPos + 1);
-}
-
-// Iniciar radar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', initRadar);
-// Por si DOMContentLoaded ya pasó
-if (document.readyState !== 'loading') initRadar();
+setInterval(init,30*60*1000);
 </script>
 </body>
 </html>
