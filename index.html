@@ -276,6 +276,9 @@ footer::before{content:'';display:block;height:1px;background:linear-gradient(90
     <div class="subtitle">Centro Meteorológico · Costa Cantábrica · Asturias</div>
     <div class="coords">43.4206°N · 4.7549°O · ALT: 12 m</div>
     <div><span class="source-badge">⚡ AEMET OpenData · Open-Meteo · RainViewer</span></div>
+    <div style="margin-top:8px;font-size:.68rem;color:rgba(0,245,255,.38);letter-spacing:.12em">
+      📍 Predicción: Municipio Llanes (33036) · Observación: Estación C030E · Alertas: Zona 330200 + 330200C (costera)
+    </div>
     <div class="hline hline-bot"></div>
   </header>
 
@@ -1065,79 +1068,247 @@ async function loadMapas(){
 }
 
 // ════════════════════════════════════════════════════════════
-//  ALERTAS
+//  ALERTAS — Plan Meteoalerta AEMET (CAP v1.2)
+//  Zona Llanes interior: 330200   Zona costera: 330200C
+//  severity: Minor=sin aviso | Moderate=amarillo | Severe=naranja | Extreme=rojo
 // ════════════════════════════════════════════════════════════
+
+// Códigos de zona que afectan a Llanes (interior + costera + toda Asturias)
+// El código de zona aparece en el <areaDesc> o en <geocode><value>
+const ZONAS_LLANES = ['330200','330200C','330000','33'];
+
+// Iconos por código de fenómeno AEMET-Meteoalerta
+const FENOMENO_ICON = {
+  PR:'🌧️', NE:'❄️', VI:'💨', TO:'⛈️', AT:'🌡️', BT:'🧊',
+  CO:'🌊', VS:'🌫️', AL:'🏔️', GA:'💨', RI:'🌊', NI:'🌫️', DH:'💧'
+};
+const FENOMENO_NOMBRE = {
+  PR:'Lluvias', NE:'Nevadas', VI:'Vientos', TO:'Tormentas',
+  AT:'Temperatura máxima', BT:'Temperatura mínima', CO:'Costero',
+  VS:'Polvo en suspensión', AL:'Aludes', GA:'Galernas',
+  RI:'Rissagues', NI:'Nieblas', DH:'Deshielos'
+};
+
 async function fetchAlertas(){
   try{
-    const r1=await fetch(PROXY+encodeURIComponent(`https://opendata.aemet.es/opendata/api/avisos_cap/ultimoelaborado/area/33?api_key=${getKey()}`));
-    const j1=await r1.json();const b1=JSON.parse(j1.contents);
-    if(b1.estado!==200)return[];
+    // El endpoint /avisos_cap/ultimoelaborado/area/33 devuelve UN fichero ZIP/XML
+    // con todos los mensajes CAP activos para Asturias
+    const r1=await fetch(PROXY+encodeURIComponent(
+      `https://opendata.aemet.es/opendata/api/avisos_cap/ultimoelaborado/area/33?api_key=${getKey()}`
+    ));
+    const j1=await r1.json();
+    const b1=JSON.parse(j1.contents);
+    if(b1.estado!==200){console.warn('Alertas AEMET estado:',b1.estado,b1.descripcion);return[];}
+
+    // El campo b1.datos es la URL del fichero con los datos
     const r2=await fetch(PROXY+encodeURIComponent(b1.datos));
-    const j2=await r2.json();const raw=j2.contents;if(!raw)return[];
+    const j2=await r2.json();
+    const raw=j2.contents;
+    if(!raw)return[];
+
+    // El contenido puede ser un XML CAP o un array JSON
+    if(raw.trim().startsWith('<'))return parseCapXML(raw);
     try{const p=JSON.parse(raw);return Array.isArray(p)?p:[p]}
     catch{return parseCapXML(raw)}
-  }catch(e){console.warn('Alertas:',e);return[]}
+  }catch(e){
+    console.warn('fetchAlertas error:',e);
+    return[];
+  }
 }
-function parseCapXML(xml){
+
+function parseCapXML(xmlStr){
   try{
-    const doc=new DOMParser().parseFromString(xml,'text/xml');
+    const doc=new DOMParser().parseFromString(xmlStr,'text/xml');
+
+    // El XML puede contener un <feed> (Atom) con múltiples <entry>,
+    // o un único <alert> CAP, o múltiples <alert> en un wrapper.
+    // AEMET devuelve un Atom feed donde cada <entry><content> tiene un <alert> CAP
     const alerts=[];
-    doc.querySelectorAll('info').forEach(info=>{
-      const lang=info.querySelector('language')?.textContent||'';
-      if(lang&&!lang.startsWith('es'))return;
-      const event=info.querySelector('event')?.textContent||'';
-      const headline=info.querySelector('headline')?.textContent||'';
-      const desc=info.querySelector('description')?.textContent||'';
-      const onset=info.querySelector('onset')?.textContent||'';
-      const expires=info.querySelector('expires')?.textContent||'';
-      let nivel='amarillo';
-      info.querySelectorAll('parameter').forEach(p=>{
-        const n=p.querySelector('valueName')?.textContent?.toLowerCase()||'';
-        const v=p.querySelector('value')?.textContent?.toLowerCase()||'';
-        if(n.includes('nivel')||n.includes('level')){
-          if(v.includes('rojo')||v.includes('red'))nivel='rojo';
-          else if(v.includes('naranja')||v.includes('orange'))nivel='naranja';
-          else if(v.includes('amarill')||v.includes('yellow'))nivel='amarillo';
+
+    // Intentar parsear como Atom feed (múltiples avisos)
+    const entries=doc.querySelectorAll('entry');
+    if(entries.length>0){
+      entries.forEach(entry=>{
+        const content=entry.querySelector('content');
+        if(content){
+          // El contenido es otro XML CAP embebido
+          const innerXml=content.textContent||content.innerHTML||'';
+          if(innerXml.includes('<alert')){
+            const inner=new DOMParser().parseFromString(innerXml,'text/xml');
+            const a=extractAlertFromCAP(inner);
+            if(a)alerts.push(...a);
+          }
         }
       });
-      const sev=info.querySelector('severity')?.textContent?.toLowerCase()||'';
-      if(sev==='extreme')nivel='rojo';else if(sev==='severe')nivel='naranja';else if(sev==='moderate')nivel='amarillo';
-      alerts.push({event,headline,desc,onset,expires,nivel});
-    });
-    return alerts;
-  }catch(e){return[]}
+    } else {
+      // Un único <alert> CAP directo
+      const a=extractAlertFromCAP(doc);
+      if(a)alerts.push(...a);
+    }
+
+    // Filtrar solo avisos reales (no Minor = sin aviso) y que afecten a Llanes
+    return alerts.filter(a=>a.nivel!=='ninguno');
+  }catch(e){
+    console.warn('parseCapXML error:',e);
+    return[];
+  }
 }
-function alertIcon(event){
+
+function extractAlertFromCAP(doc){
+  const results=[];
+  // Cada <alert> puede tener varios <info> (uno por idioma)
+  // Solo procesamos es-ES
+  const infos=Array.from(doc.querySelectorAll('info'));
+  if(!infos.length)return results;
+
+  // Tomar solo el bloque en español
+  let infoEs=infos.find(i=>{
+    const lang=i.querySelector('language')?.textContent||'';
+    return lang==='es-ES'||lang==='es';
+  })||infos[0];
+
+  if(!infoEs)return results;
+
+  // severity → nivel
+  const sev=(infoEs.querySelector('severity')?.textContent||'').toLowerCase();
+  let nivel='ninguno';
+  if(sev==='extreme')nivel='rojo';
+  else if(sev==='severe')nivel='naranja';
+  else if(sev==='moderate')nivel='amarillo';
+  else if(sev==='minor')nivel='ninguno'; // sin aviso → descartar
+
+  if(nivel==='ninguno')return results; // No mostrar "sin aviso"
+
+  // Zona — verificar que afecta a Llanes/Asturias
+  const areaDescs=Array.from(doc.querySelectorAll('areaDesc')).map(a=>a.textContent||'');
+  const geocodes=Array.from(doc.querySelectorAll('geocode value')).map(v=>v.textContent||'');
+  const allZones=[...areaDescs,...geocodes].join(' ');
+
+  // Verificar que es zona Asturias (código 33xxxx) o costera 33xxxxC
+  const esAsturias=geocodes.some(g=>g.startsWith('33'))||
+                   areaDescs.some(a=>a.toLowerCase().includes('asturias')||a.toLowerCase().includes('llanes'));
+  if(!esAsturias)return results;
+
+  // Detectar si es aviso costero
+  const esCosteRo=geocodes.some(g=>g.endsWith('C'))||
+                  areaDescs.some(a=>a.toLowerCase().includes('cost')||a.toLowerCase().includes('mar'));
+
+  // Fenómeno — desde eventCode
+  let fenCodigo='';let fenNombre='';
+  infoEs.querySelectorAll('eventCode').forEach(ec=>{
+    const vn=ec.querySelector('valueName')?.textContent||'';
+    const vv=ec.querySelector('value')?.textContent||'';
+    if(vn==='AEMET-Meteoalerta fenómeno'||vn.includes('fenómeno')||vn.includes('fenomeno')){
+      // value tiene formato "FF;nombre_fenomeno"
+      const parts=vv.split(';');
+      fenCodigo=parts[0]?.trim()||'';
+      fenNombre=parts[1]?.trim()||FENOMENO_NOMBRE[fenCodigo]||fenCodigo;
+    }
+  });
+  // Fallback: leer de <event>
+  const eventText=infoEs.querySelector('event')?.textContent||'';
+  if(!fenNombre)fenNombre=eventText;
+  if(!fenCodigo){
+    // Inferir de texto
+    const et=eventText.toLowerCase();
+    if(et.includes('lluvia')||et.includes('precipit'))fenCodigo='PR';
+    else if(et.includes('nieve')||et.includes('neva'))fenCodigo='NE';
+    else if(et.includes('viento'))fenCodigo='VI';
+    else if(et.includes('tormenta'))fenCodigo='TO';
+    else if(et.includes('costa')||et.includes('oleaje')||et.includes('galerna'))fenCodigo='CO';
+    else if(et.includes('niebla'))fenCodigo='NI';
+  }
+
+  const headline=infoEs.querySelector('headline')?.textContent||fenNombre||'Aviso meteorológico';
+  const desc=infoEs.querySelector('description')?.textContent||'';
+  const onset=infoEs.querySelector('onset')?.textContent||'';
+  const expires=infoEs.querySelector('expires')?.textContent||'';
+
+  // Valor del parámetro (umbral)
+  let umbral='';
+  infoEs.querySelectorAll('parameter').forEach(p=>{
+    const vn=p.querySelector('valueName')?.textContent||'';
+    const vv=p.querySelector('value')?.textContent||'';
+    if(vn.toLowerCase().includes('umbral')||vn.toLowerCase().includes('valor'))umbral=vv;
+  });
+
+  results.push({
+    fenCodigo, fenNombre, headline, desc, onset, expires,
+    nivel, esCosteRo, umbral,
+    zona: areaDescs[0]||'Asturias'
+  });
+  return results;
+}
+function alertIcon(fenCodigo,event){
+  if(FENOMENO_ICON[fenCodigo])return FENOMENO_ICON[fenCodigo];
   const e=(event||'').toLowerCase();
   if(e.includes('viento')||e.includes('wind'))return'💨';
-  if(e.includes('lluvia')||e.includes('rain'))return'🌧️';
+  if(e.includes('lluvia')||e.includes('rain')||e.includes('precipit'))return'🌧️';
   if(e.includes('nieve')||e.includes('snow'))return'❄️';
   if(e.includes('tormenta')||e.includes('storm'))return'⛈️';
   if(e.includes('niebla')||e.includes('fog'))return'🌫️';
-  if(e.includes('marea')||e.includes('coastal'))return'🌊';
+  if(e.includes('costa')||e.includes('oleaje')||e.includes('galerna'))return'🌊';
   if(e.includes('calor')||e.includes('heat'))return'🌡️';
+  if(e.includes('frio')||e.includes('cold'))return'🧊';
   return'⚠️';
 }
+
 function renderAlertas(alerts,ts){
   const el=document.getElementById('alertas-panel');if(!el)return;
-  const hay=alerts&&alerts.length>0;
+
+  // Separar avisos reales de "sin aviso"
+  const avisos=(alerts||[]).filter(a=>a.nivel&&a.nivel!=='ninguno');
+  const hay=avisos.length>0;
+
   let dot='alert-dot-ok';
-  if(hay){const n=alerts.map(a=>a.nivel||'amarillo');dot=n.includes('rojo')?'alert-dot-red':n.includes('naranja')?'alert-dot-warn':'alert-dot-warn'}
-  let html=`<div class="alert-panel"><div class="alert-header">
-    <div class="alert-header-left"><div class="${dot}"></div>⚠️ Alertas AEMET · Asturias / Llanes</div>
-    <div class="alert-ts">ACT. ${timeStr(ts)}</div></div>`;
-  if(!hay){html+=`<div class="alert-none">✅ &nbsp;Sin alertas activas en este momento para la zona de Llanes</div>`}
-  else{alerts.forEach(a=>{
-    const n=a.nivel||'amarillo';const badge=`<span class="nivel-badge badge-${n}">${n.toUpperCase()}</span>`;
-    const tit=a.headline||a.event||'Aviso meteorológico';
-    const desc=a.desc?a.desc.slice(0,220)+(a.desc.length>220?'…':''):'';
-    const meta=[a.onset?'▶ Inicio: '+fmtISO(a.onset):'',a.expires?'⏹ Fin: '+fmtISO(a.expires):''].filter(Boolean).join('  ·  ');
-    html+=`<div class="alert-item nivel-${n}"><div class="alert-icon">${alertIcon(a.event)}</div>
-      <div class="alert-body"><div class="alert-tipo">${tit}${badge}</div>
-      ${desc?`<div class="alert-desc">${desc}</div>`:''}
-      ${meta?`<div class="alert-meta">${meta}</div>`:''}</div></div>`;
-  })}
-  html+=`</div>`;el.innerHTML=html;
+  if(hay){
+    const n=avisos.map(a=>a.nivel);
+    dot=n.includes('rojo')?'alert-dot-red':n.includes('naranja')?'alert-dot-warn':'alert-dot-warn';
+  }
+
+  let html=`<div class="alert-panel">
+    <div class="alert-header">
+      <div class="alert-header-left">
+        <div class="${dot}"></div>
+        ⚠️ Alertas AEMET · Llanes · Asturias
+      </div>
+      <div class="alert-ts">ACT. ${timeStr(ts)}</div>
+    </div>`;
+
+  if(!hay){
+    html+=`<div class="alert-none">✅ &nbsp;Sin alertas activas en este momento para la zona de Llanes</div>`;
+  } else {
+    // Ordenar: rojo primero, luego naranja, luego amarillo
+    const orden={rojo:0,naranja:1,amarillo:2};
+    avisos.sort((a,b)=>(orden[a.nivel]||9)-(orden[b.nivel]||9));
+
+    avisos.forEach(a=>{
+      const n=a.nivel||'amarillo';
+      const badge=`<span class="nivel-badge badge-${n}">${n.toUpperCase()}</span>`;
+      const icono=alertIcon(a.fenCodigo,a.fenNombre||a.headline);
+      const tit=a.headline||a.fenNombre||'Aviso meteorológico';
+      const desc=(a.desc||'').slice(0,280)+((a.desc||'').length>280?'…':'');
+      const costeRoBadge=a.esCosteRo?'<span style="font-size:.62rem;background:rgba(0,229,204,.15);color:var(--teal);border:1px solid rgba(0,229,204,.35);border-radius:3px;padding:1px 7px;margin-left:6px;letter-spacing:.1em">COSTERO</span>':'';
+      const umbralTxt=a.umbral?`<span style="color:rgba(255,220,100,.7)"> · Umbral: ${a.umbral}</span>`:'';
+      const meta=[
+        a.zona?`📍 ${a.zona}`:'',
+        a.onset?'▶ Inicio: '+fmtISO(a.onset):'',
+        a.expires?'⏹ Fin: '+fmtISO(a.expires):''
+      ].filter(Boolean).join('  ·  ');
+
+      html+=`<div class="alert-item nivel-${n}">
+        <div class="alert-icon">${icono}</div>
+        <div class="alert-body">
+          <div class="alert-tipo">${tit}${badge}${costeRoBadge}${umbralTxt}</div>
+          ${desc?`<div class="alert-desc">${desc}</div>`:''}
+          ${meta?`<div class="alert-meta">${meta}</div>`:''}
+        </div>
+      </div>`;
+    });
+  }
+
+  html+=`</div>`;
+  el.innerHTML=html;
 }
 function renderAlertasFallback(){renderAlertas([],new Date())}
 
