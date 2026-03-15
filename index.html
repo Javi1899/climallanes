@@ -260,6 +260,67 @@ canvas{display:block;width:100%!important;max-height:200px}
 .info-msg{background:rgba(0,245,255,.05);border:1px solid rgba(0,245,255,.18);color:rgba(0,245,255,.7);
   padding:11px 16px;border-radius:4px;font-size:.78rem;margin:9px 0;line-height:1.6}
 
+/* ── IRPM PASEO MARÍTIMO ── */
+.irpm-panel{border-radius:4px;overflow:hidden;margin-top:18px;border:2px solid transparent;transition:border-color .4s}
+.irpm-panel.nivel-verde  {border-color:rgba(0,220,80,.5)}
+.irpm-panel.nivel-amarillo{border-color:rgba(255,210,0,.5)}
+.irpm-panel.nivel-naranja {border-color:rgba(255,130,0,.55)}
+.irpm-panel.nivel-rojo    {border-color:rgba(255,40,40,.6)}
+.irpm-panel.nivel-negro   {border-color:rgba(180,0,220,.6)}
+.irpm-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;flex-wrap:wrap;gap:10px}
+.irpm-header.nivel-verde  {background:rgba(0,200,60,.12)}
+.irpm-header.nivel-amarillo{background:rgba(255,200,0,.12)}
+.irpm-header.nivel-naranja {background:rgba(255,120,0,.14)}
+.irpm-header.nivel-rojo    {background:rgba(255,30,30,.14)}
+.irpm-header.nivel-negro   {background:rgba(150,0,200,.14)}
+.irpm-left{display:flex;align-items:center;gap:14px}
+.irpm-circle{width:72px;height:72px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;font-family:'Orbitron',monospace;box-shadow:0 0 18px currentColor}
+.irpm-circle.nivel-verde  {background:rgba(0,200,60,.2);border:2px solid #00dc50;color:#00dc50}
+.irpm-circle.nivel-amarillo{background:rgba(255,200,0,.2);border:2px solid #ffd200;color:#ffd200}
+.irpm-circle.nivel-naranja {background:rgba(255,120,0,.2);border:2px solid #ff8200;color:#ff8200}
+.irpm-circle.nivel-rojo    {background:rgba(255,30,30,.2);border:2px solid #ff2828;color:#ff2828}
+.irpm-circle.nivel-negro   {background:rgba(150,0,200,.2);border:2px solid #b400dc;color:#b400dc}
+.irpm-num{font-size:1.5rem;font-weight:900;line-height:1}
+.irpm-lbl{font-size:.5rem;letter-spacing:.15em;opacity:.8;margin-top:1px}
+.irpm-info{flex:1}
+.irpm-titulo{font-family:'Orbitron',monospace;font-size:.88rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase}
+.irpm-titulo.nivel-verde  {color:#00dc50}
+.irpm-titulo.nivel-amarillo{color:#ffd200}
+.irpm-titulo.nivel-naranja {color:#ff8200}
+.irpm-titulo.nivel-rojo    {color:#ff4444}
+.irpm-titulo.nivel-negro   {color:#cc44ff}
+.irpm-subtitulo{font-size:.78rem;color:rgba(200,225,255,.6);margin-top:4px;letter-spacing:.08em}
+.irpm-accion{font-size:.82rem;margin-top:7px;padding:7px 12px;border-radius:3px;line-height:1.5}
+.irpm-accion.nivel-verde  {background:rgba(0,200,60,.1);color:rgba(150,255,150,.85);border:1px solid rgba(0,200,60,.2)}
+.irpm-accion.nivel-amarillo{background:rgba(255,200,0,.1);color:rgba(255,230,100,.85);border:1px solid rgba(255,200,0,.22)}
+.irpm-accion.nivel-naranja {background:rgba(255,120,0,.1);color:rgba(255,180,80,.85);border:1px solid rgba(255,120,0,.24)}
+.irpm-accion.nivel-rojo    {background:rgba(255,30,30,.1);color:rgba(255,140,140,.85);border:1px solid rgba(255,30,30,.26)}
+.irpm-accion.nivel-negro   {background:rgba(150,0,200,.12);color:rgba(220,150,255,.85);border:1px solid rgba(150,0,200,.28)}
+.irpm-bar-wrap{padding:0 20px 16px;background:rgba(0,5,15,.5)}
+.irpm-bar-track{height:10px;border-radius:5px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:6px}
+.irpm-bar-fill{height:100%;border-radius:5px;transition:width 1.2s ease;background:linear-gradient(90deg,#00dc50 0%,#ffd200 30%,#ff8200 55%,#ff2828 75%,#b400dc 100%)}
+.irpm-bar-labels{display:flex;justify-content:space-between;font-size:.58rem;color:rgba(0,245,255,.35);letter-spacing:.1em;margin-top:4px}
+.sea-forecast-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;margin-top:12px}
+@media(max-width:900px){.sea-forecast-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:480px){.sea-forecast-grid{grid-template-columns:repeat(2,1fr)}}
+.sf-card{border-radius:4px;padding:11px 8px;text-align:center;border:2px solid transparent;transition:all .3s}
+.sf-card:hover{transform:translateY(-2px);filter:brightness(1.15)}
+.sf-card.nivel-verde  {background:rgba(0,180,50,.1);border-color:rgba(0,180,50,.35)}
+.sf-card.nivel-amarillo{background:rgba(255,200,0,.1);border-color:rgba(255,200,0,.38)}
+.sf-card.nivel-naranja {background:rgba(255,120,0,.12);border-color:rgba(255,120,0,.4)}
+.sf-card.nivel-rojo    {background:rgba(255,30,30,.12);border-color:rgba(255,30,30,.42)}
+.sf-card.nivel-negro   {background:rgba(140,0,200,.12);border-color:rgba(140,0,200,.42)}
+.sf-day{font-family:'Orbitron',monospace;font-size:.6rem;letter-spacing:.14em;margin-bottom:6px}
+.sf-card.nivel-verde   .sf-day{color:#00dc50}
+.sf-card.nivel-amarillo .sf-day{color:#ffd200}
+.sf-card.nivel-naranja  .sf-day{color:#ff8200}
+.sf-card.nivel-rojo     .sf-day{color:#ff4444}
+.sf-card.nivel-negro    .sf-day{color:#cc44ff}
+.sf-icon{font-size:1.5rem;margin:4px 0}
+.sf-irpm{font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:700;color:#fff}
+.sf-nivel{font-size:.62rem;letter-spacing:.1em;margin-top:3px;opacity:.82}
+.sf-detail{font-size:.64rem;color:rgba(150,210,255,.65);margin-top:7px;padding-top:6px;border-top:1px solid rgba(255,255,255,.08);line-height:1.7;text-align:left}
+
 /* ── FOOTER ── */
 footer{text-align:center;padding:30px 0 20px}
 footer::before{content:'';display:block;height:1px;background:linear-gradient(90deg,transparent,rgba(0,245,255,.2),transparent);margin-bottom:20px}
@@ -707,7 +768,124 @@ function renderActualFallback(omData,marineData){
   renderDiariaFallback(omData);
 }
 
-// ── MAREAS helper ──────────────────────────────────────────
+// ════════════════════════════════════════════════════════════
+//  ÍNDICE DE RIESGO PASEO MARÍTIMO (IRPM)
+//  Basado en: Escala_Riesgo_Paseo_Maritimo.xlsx + Niveles_de_alerta.docx
+//
+//  Tabla Douglas/IRPM:
+//  Grado | Ola (m)       | Coef       | IRPM
+//  0     | 0             | <60        | 0-10
+//  1     | 0-0.10        | <60        | 11-20
+//  2     | 0.10-0.50     | 60-70      | 21-30
+//  3     | 0.50-1.25     | 70-80      | 31-40
+//  4     | 1.25-2.50     | 80-90      | 41-60
+//  5     | 2.50-4.00     | 90-100     | 61-80
+//  6     | 4.00-6.00     | 100-110    | 81-90
+//  7     | 6.00-9.00     | >100       | 91-95
+//  8     | 9.00-14.00    | cualquiera | 96-99
+//  9     | >14.00        | cualquiera | 100
+// ════════════════════════════════════════════════════════════
+function calcIRPM(waveMetros, coefMarea) {
+  // Puntuación por altura de ola (0-60 puntos)
+  let pOla = 0;
+  if (waveMetros >= 14)    pOla = 60;
+  else if (waveMetros >= 9)  pOla = 54;
+  else if (waveMetros >= 6)  pOla = 47;
+  else if (waveMetros >= 4)  pOla = 39;
+  else if (waveMetros >= 2.5)pOla = 30;
+  else if (waveMetros >= 1.25)pOla = 20;
+  else if (waveMetros >= 0.5) pOla = 12;
+  else if (waveMetros >= 0.1) pOla = 6;
+  else                        pOla = 0;
+
+  // Puntuación por coeficiente de marea (0-40 puntos)
+  let pCoef = 0;
+  if (coefMarea >= 110)     pCoef = 40;
+  else if (coefMarea >= 100) pCoef = 35;
+  else if (coefMarea >= 90)  pCoef = 28;
+  else if (coefMarea >= 80)  pCoef = 20;
+  else if (coefMarea >= 70)  pCoef = 12;
+  else if (coefMarea >= 60)  pCoef = 6;
+  else                        pCoef = 0;
+
+  // IRPM combinado (sin superar 100)
+  return Math.min(100, Math.round(pOla + pCoef));
+}
+
+function irpmInfo(irpm) {
+  if (irpm <= 10)  return { nivel:'verde',   num:1, nombre:'VERDE — Riesgo Mínimo',       emoji:'🟢', accion:'Sin restricciones. Actividades recreativas normales. Paseo totalmente seco.', efectos:'Superficie plana o pequeños rizos. Sin afectación.' };
+  if (irpm <= 20)  return { nivel:'verde',   num:1, nombre:'VERDE — Riesgo Mínimo',       emoji:'🟢', accion:'Sin restricciones. Actividades recreativas normales.', efectos:'Pequeños rizos. Sin afectación en el paseo.' };
+  if (irpm <= 40)  return { nivel:'amarillo',num:2, nombre:'AMARILLO — Precaución',       emoji:'🟡', accion:'Atención al caminar cerca del borde. Riesgo de resbalones. Suelo mojado.', efectos:'El mar empieza a tener fuerza. Salpicaduras aisladas.' };
+  if (irpm <= 70)  return { nivel:'naranja', num:3, nombre:'NARANJA — Alerta / Riesgo Alto',emoji:'🟠', accion:'Evitar zonas de primera línea. Posible cierre de accesos peatonales expuestos.', efectos:'El agua salta el muro. Golpes de mar constantes. Pueden arrastrarse objetos ligeros.' };
+  if (irpm <= 90)  return { nivel:'rojo',    num:4, nombre:'ROJO — Peligro / Riesgo Muy Alto',emoji:'🔴', accion:'CIERRE TOTAL del paseo marítimo. Prohibición de acceso a personas y vehículos. Desalojo de terrazas.', efectos:'Invasión masiva de agua. Olas con mucha masa. Riesgo de daños en locales y rotura de mobiliario.' };
+  if (irpm <= 100) return { nivel:'negro',   num:5, nombre:'NEGRO — Extremo / Catastrófico',emoji:'⚫', accion:'EVACUACIÓN de zonas costeras bajas. Estado de emergencia.', efectos:'Destrucción de infraestructura. El mar sobrepasa cualquier defensa. Inundaciones graves.' };
+  return { nivel:'negro', num:5, nombre:'NEGRO — Extremo', emoji:'⚫', accion:'EVACUACIÓN.', efectos:'Situación catastrófica.' };
+}
+
+function buildIrpmPanel(waveH, coef) {
+  const irpm = calcIRPM(waveH, coef);
+  const info = irpmInfo(irpm);
+  const pct  = Math.min(100, irpm);
+  return `
+  <div class="irpm-panel nivel-${info.nivel}" id="irpm-main">
+    <div class="irpm-header nivel-${info.nivel}">
+      <div class="irpm-left">
+        <div class="irpm-circle nivel-${info.nivel}">
+          <div class="irpm-num">${irpm}</div>
+          <div class="irpm-lbl">IRPM</div>
+        </div>
+        <div class="irpm-info">
+          <div class="irpm-titulo nivel-${info.nivel}">${info.emoji} Nivel ${info.num} · ${info.nombre}</div>
+          <div class="irpm-subtitulo">Ola: ${waveH.toFixed(1)}m · Coeficiente marea: ${coef} · Índice IRPM: ${irpm}/100</div>
+          <div class="irpm-accion nivel-${info.nivel}">⚠️ ${info.accion}</div>
+        </div>
+      </div>
+    </div>
+    <div class="irpm-bar-wrap">
+      <div style="font-size:.6rem;color:rgba(0,245,255,.4);letter-spacing:.16em;padding-top:10px;margin-bottom:4px">ÍNDICE DE RIESGO PASEO MARÍTIMO</div>
+      <div class="irpm-bar-track">
+        <div class="irpm-bar-fill" style="width:${pct}%"></div>
+      </div>
+      <div class="irpm-bar-labels"><span>0 MÍNIMO</span><span>20</span><span>40</span><span>70 ALTO</span><span>90 PELIGRO</span><span>100 EXTREMO</span></div>
+      <div style="font-size:.72rem;color:rgba(200,220,255,.55);margin-top:8px;padding-bottom:4px">
+        🌊 ${info.efectos}
+      </div>
+    </div>
+  </div>`;
+}
+
+// Panel previsión 7 días del IRPM (para pestaña Marítima)
+function buildIrpm7dias(marineData) {
+  if (!marineData?.daily) return '<div class="warn-msg">Sin datos marinos para previsión.</div>';
+  const now = new Date();
+  let html = '<div class="sea-forecast-grid">';
+  marineData.daily.time.forEach((t, i) => {
+    const date   = new Date(t + 'T12:00:00');
+    const dKey   = t.slice(0,10);
+    const wh     = parseFloat(marineData.daily.wave_height_max[i] || 0);
+    const tideD  = TIDES_DB[dKey];
+    const coefD  = tideD ? tideD.coef : lunarCoef();
+    const irpm   = calcIRPM(wh, coefD);
+    const info   = irpmInfo(irpm);
+    const dName  = i===0?'HOY':i===1?'MAÑANA':DAYS[date.getDay()];
+    html += `
+    <div class="sf-card nivel-${info.nivel}">
+      <div class="sf-day">${dName}<br><small style="opacity:.55;font-size:.52rem">${date.getDate()} ${MONTHS[date.getMonth()]}</small></div>
+      <div class="sf-icon">${info.emoji}</div>
+      <div class="sf-irpm">${irpm}</div>
+      <div class="sf-nivel" style="color:var(--nivel-color-${info.nivel},#fff)">Niv.${info.num} ${info.nivel.toUpperCase()}</div>
+      <div class="sf-detail">
+        🌊 Ola: <strong style="color:#fff">${wh.toFixed(1)}m</strong><br>
+        🌊 Coef: <strong style="color:#fff">${coefD}</strong><br>
+        ⚠️ <span style="font-size:.6rem">${info.nombre.split('—')[1]?.trim()||info.nivel}</span>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+
 function lunarCoef(){const ref=new Date('2026-03-01').getTime();const cycle=29.53058867*86400000;const phase=((Date.now()-ref)%cycle)/cycle;return Math.min(120,Math.max(20,Math.round(70+50*Math.abs(Math.cos(phase*2*Math.PI)))))}
 
 function buildSeaSection(coef,cInfo,waveH,waveDir,sea,tideToday){
@@ -724,7 +902,12 @@ function buildSeaSection(coef,cInfo,waveH,waveDir,sea,tideToday){
       <div class="sea-stat"><span class="stat-label">Altura de ola</span><div class="stat-val">${waveH.toFixed(1)}<span class="stat-unit">m</span></div><small style="color:rgba(0,229,204,.4);font-size:.68rem">Procedencia ${waveDir}</small></div>
       <div class="sea-stat"><span class="stat-label">Coeficiente de marea</span><div style="font-family:'Orbitron',monospace;font-size:1.9rem;font-weight:700;color:${cInfo.color}">${coef}</div>
         <div class="coef-badge" style="border:1px solid ${cInfo.color}44;background:${cInfo.color}11;color:${cInfo.color}">🌊 MAREA ${cInfo.tipo}</div></div>
-    </div>${tides}<div class="sea-wave"></div></div>`;
+    </div>${tides}
+    <div style="padding:0 0 4px">
+      <div class="section-title" style="margin:16px 0 6px;font-size:.72rem">🚶 Estado del Paseo Marítimo · Índice IRPM</div>
+      ${buildIrpmPanel(waveH, coef)}
+    </div>
+    <div class="sea-wave"></div></div>`;
 }
 
 // ════════════════════════════════════════════════════════════
@@ -919,39 +1102,61 @@ async function loadGraficos(){
 // ════════════════════════════════════════════════════════════
 async function loadMaritima(){
   const el=document.getElementById('maritima-panel');
-  try{
-    // Costa Cantábrica = código 41
-    const txt=await aemetFetchText('/prediccion/maritima/costera/costa/41');
-    el.innerHTML=`
-      <div class="text-meta">📡 Fuente: AEMET · Predicción marítima costera · Costa Cantábrica (Código 41)</div>
-      <div class="text-box">${txt||'Sin datos disponibles'}</div>
-      <div style="margin-top:12px">
-        <div class="section-title">🌊 Estado del mar · Predicción marina Open-Meteo</div>
-        <div id="marine-forecast-cards"><div class="loading">CARGANDO<span class="spinner"></span></div></div>
-      </div>`;
-    loadMarineForecast();
-  }catch(err){
-    el.innerHTML=`<div class="warn-msg">⚠️ Predicción marítima AEMET no disponible: ${err.message}</div><div id="marine-forecast-cards"><div class="loading">CARGANDO DATOS MARINOS<span class="spinner"></span></div></div>`;
-    loadMarineForecast();
+  // Cargar texto AEMET y datos marinos en paralelo
+  const [txtResult, marineData] = await Promise.allSettled([
+    aemetFetchText('/prediccion/maritima/costera/costa/41'),
+    fetchMarine()
+  ]);
+
+  const txt = txtResult.status==='fulfilled' ? txtResult.value : null;
+  const marine = marineData.status==='fulfilled' ? marineData.value : null;
+
+  let html = '';
+
+  // Texto predicción costera AEMET
+  if (txt) {
+    html += `<div class="text-meta">📡 Fuente: AEMET · Predicción marítima costera · Costa Cantábrica (Código 41)</div>
+             <div class="text-box">${txt}</div>`;
+  } else {
+    html += `<div class="warn-msg">⚠️ Predicción marítima AEMET no disponible en este momento.</div>`;
   }
-}
-async function loadMarineForecast(){
-  const el=document.getElementById('marine-forecast-cards');if(!el)return;
-  try{
-    const mar=await fetchMarine();if(!mar?.daily)throw new Error('Sin datos');
-    const now=new Date();let html='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:10px">';
-    mar.daily.time.forEach((t,i)=>{
-      const date=new Date(t+'T12:00:00');const wh=(mar.daily.wave_height_max[i]||0).toFixed(1);const sea=seaState(parseFloat(wh));
-      html+=`<div class="obs-card" style="text-align:center">
+
+  // Previsión IRPM 7 días
+  html += `
+    <div class="section-title" style="margin-top:26px">🚶 Previsión Paseo Marítimo · Índice IRPM 7 días</div>
+    <div class="info-msg" style="margin-bottom:10px">
+      El Índice de Riesgo del Paseo Marítimo (IRPM) combina la altura de ola prevista con el coeficiente de marea de cada día.
+      Escala: 🟢 Mínimo (0-20) · 🟡 Precaución (21-40) · 🟠 Alerta (41-70) · 🔴 Peligro (71-90) · ⚫ Extremo (91-100)
+    </div>
+    ${marine ? buildIrpm7dias(marine) : '<div class="warn-msg">Sin datos marinos para calcular previsión.</div>'}
+  `;
+
+  // Previsión de olas 7 días
+  html += `<div class="section-title" style="margin-top:26px">🌊 Estado del mar · Previsión 7 días</div>
+           <div id="marine-forecast-cards"><div class="loading">CARGANDO<span class="spinner"></span></div></div>`;
+
+  el.innerHTML = html;
+
+  // Cargar tarjetas de olas
+  if (marine?.daily) {
+    const now=new Date();
+    let cardsHtml='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:4px">';
+    marine.daily.time.forEach((t,i)=>{
+      const date=new Date(t+'T12:00:00');const wh=(marine.daily.wave_height_max[i]||0).toFixed(1);const sea=seaState(parseFloat(wh));
+      cardsHtml+=`<div class="obs-card" style="text-align:center">
         <div class="obs-icon">🌊</div>
         <div style="font-family:'Orbitron',monospace;font-size:.6rem;color:var(--teal);letter-spacing:.14em;margin-bottom:6px">${i===0?'HOY':DAYS[date.getDay()]} ${date.getDate()} ${MONTHS[date.getMonth()]}</div>
         <div class="obs-val">${wh}<span class="obs-unit">m</span></div>
-        <div class="obs-sub">${sea.s}</div>
-        <div class="obs-sub">Beaufort ${sea.b}</div>
+        <div class="obs-sub">${sea.s}</div><div class="obs-sub">Beaufort ${sea.b}</div>
       </div>`;
     });
-    html+='</div>';el.innerHTML=html;
-  }catch(e){el.innerHTML=`<div class="warn-msg">Sin previsión marina disponible</div>`}
+    cardsHtml+='</div>';
+    const mfc=document.getElementById('marine-forecast-cards');
+    if(mfc)mfc.innerHTML=cardsHtml;
+  } else {
+    const mfc=document.getElementById('marine-forecast-cards');
+    if(mfc)mfc.innerHTML='<div class="warn-msg">Sin previsión marina disponible</div>';
+  }
 }
 
 // ════════════════════════════════════════════════════════════
